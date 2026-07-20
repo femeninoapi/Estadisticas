@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuaderno de Partido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0B0F14;
+  --bg-elevated:#131922;
+  --header-grad-1:#0D1A1C;
+  --header-grad-2:#0A1214;
+  --card:#171D27;
+  --card-hover:#1E2531;
+  --line:#2A3140;
+  --line-soft:#1F2530;
+  --chalk:#F3F5F1;
+  --chalk-dim:#232A38;
+  --ink:#E9ECEF;
+  --ink-soft:#99A3B3;
+  --ink-faint:#5C6675;
+  --lime:#2DD4BF;
+  --lime-deep:#14B8A6;
+  --lime-glow:rgba(45,212,191,0.14);
+  --pink:#FB7185;
+  --pink-deep:#F43F5E;
+  --pink-glow:rgba(251,113,133,0.13);
+  --pitch:#0E7A6B;
+  --pitch-mid:#16A394;
+  --red:#FF6B6B;
+  --red-deep:#F0454A;
+  --red-glow:rgba(255,107,107,0.14);
+  --gold:var(--pink);
+  --gold-deep:var(--pink-deep);
+  --shadow:0 8px 24px rgba(0,0,0,0.28), 0 1px 3px rgba(0,0,0,0.3);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(1100px 500px at 15% -10%, rgba(45,212,191,0.07), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(251,113,133,0.06), transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+}
+h1,h2,h3,.num,.stat-value{font-family:'Oswald',sans-serif;}
+.mono{font-family:'Space Mono',monospace;}
+
+/* ===== Header ===== */
+.app-header{
+  background:linear-gradient(155deg,var(--header-grad-1) 0%, var(--header-grad-2) 55%, #0B0E13 100%);
+  color:var(--chalk);
+  padding:22px 24px 0 24px;
+  position:relative;
+  overflow:hidden;
+  border-bottom:1px solid var(--line);
+}
+.header-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  position:relative;
+  z-index:2;
+}
+.brand{display:flex;align-items:center;gap:14px;}
+.crest{
+  width:46px;height:46px;border-radius:12px;
+  background:linear-gradient(135deg,var(--lime) 0%, var(--pitch-mid) 130%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;
+  color:#062420;
+  flex-shrink:0;
+  box-shadow:0 0 0 1px rgba(198,255,61,0.25), 0 6px 18px rgba(198,255,61,0.18);
+}
+.brand-text .eyebrow{
+  font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--lime);font-weight:600;margin:0 0 2px 0;
+}
+.brand-text h1{
+  margin:0;font-size:22px;font-weight:600;letter-spacing:0.01em;color:var(--chalk);
+}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.hbtn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(243,245,241,0.05);
+  border:1px solid rgba(243,245,241,0.14);
+  color:var(--chalk);
+  padding:8px 13px;border-radius:8px;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+  cursor:pointer;transition:background .15s ease, border-color .15s ease;
+}
+.hbtn:hover{background:rgba(243,245,241,0.1);border-color:rgba(243,245,241,0.24);}
+.hbtn.primary{background:var(--lime);border-color:var(--lime);color:#062420;font-weight:700;}
+.hbtn.primary:hover{background:#D4FF6B;}
+#importInput{display:none;}
+.sync-badge{
+  font-size:11.5px;color:rgba(243,245,241,0.55);display:flex;align-items:center;gap:5px;
+  padding:0 4px;
+}
+.sync-badge.ok{color:var(--lime);}
+.sync-badge.local{color:#E8C158;}
+.sync-badge.error{color:var(--red);}
+
+/* pitch line texture */
+.pitch-lines{
+  position:absolute;inset:0;z-index:1;opacity:0.35;pointer-events:none;
+}
+.pitch-lines svg{width:100%;height:100%;display:block;}
+
+/* ===== Tabs ===== */
+.tabs{
+  display:flex;gap:2px;margin-top:20px;position:relative;z-index:2;
+  border-bottom:1px solid rgba(243,245,241,0.1);
+}
+.tab{
+  background:none;border:none;color:rgba(243,245,241,0.5);
+  padding:11px 16px;font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;
+  cursor:pointer;border-bottom:2px solid transparent;
+  display:flex;align-items:center;gap:7px;
+  transition:color .15s ease;
+}
+.tab:hover{color:var(--chalk);}
+.tab.active{color:var(--chalk);border-bottom-color:var(--lime);}
+.tab .tag{
+  background:rgba(243,245,241,0.1);border-radius:20px;padding:1px 7px;font-size:11px;
+}
+
+/* ===== Layout ===== */
+.container{max-width:1180px;margin:0 auto;padding:24px 24px 64px;}
+.view{display:none;}
+.view.active{display:block;}
+.section-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:16px;flex-wrap:wrap;
+}
+.section-head h2{margin:0;font-size:19px;font-weight:600;}
+.section-head .sub{color:var(--ink-soft);font-size:13px;margin-top:2px;}
+
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--card);border:1px solid var(--line);color:var(--ink);
+  padding:8px 14px;border-radius:8px;font-family:'Inter',sans-serif;
+  font-size:13px;font-weight:500;cursor:pointer;transition:all .15s ease;
+}
+.btn:hover{border-color:var(--lime-deep);background:var(--card-hover);}
+.btn.primary{background:var(--lime);color:#062420;border-color:var(--lime);font-weight:700;}
+.btn.primary:hover{background:#D4FF6B;}
+.btn.danger{color:#FFB3B3;border-color:var(--red);background:rgba(255,92,92,0.08);}
+.btn.danger:hover{background:rgba(255,92,92,0.16);}
+.btn.small{padding:5px 10px;font-size:12px;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow);
+}
+.empty{
+  text-align:center;padding:48px 24px;color:var(--ink-soft);
+  border:1.5px dashed var(--line);border-radius:12px;background:var(--bg-elevated);
+}
+.empty h3{margin:0 0 6px;color:var(--ink);font-size:15px;font-weight:600;}
+.empty p{margin:0 0 16px;font-size:13.5px;}
+
+/* toast */
+#toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--card);border:1px solid var(--line);color:var(--ink);padding:10px 18px;border-radius:9px;
+  font-size:13px;font-weight:500;opacity:0;transition:all .25s ease;pointer-events:none;
+  z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.5);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.roster-table{width:100%;border-collapse:collapse;}
+.roster-table th{
+  text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--ink-faint);font-weight:600;padding:11px 14px;border-bottom:1px solid var(--line);
+  background:var(--bg-elevated);
+}
+.roster-table td{border-bottom:1px solid var(--line-soft);padding:2px 14px;}
+.roster-table tr:last-child td{border-bottom:none;}
+.roster-table tr:hover td{background:rgba(243,245,241,0.02);}
+.pl-input{
+  width:100%;border:none;background:transparent;padding:9px 0;font-size:13.5px;
+  color:var(--ink);font-family:'Inter',sans-serif;
+}
+.pl-input:focus{outline:none;}
+.pl-input.mono{font-family:'Space Mono',monospace;text-align:center;}
+.pl-select{cursor:pointer;padding:9px 0;}
+.pl-select option{background:var(--card);color:var(--ink);}
+.icon-btn{
+  background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:14px;
+  width:26px;height:26px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;
+}
+.icon-btn:hover{background:rgba(255,92,92,0.14);color:#FFB3B3;}
+
+/* match cards */
+.match-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;
+}
+.match-card{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:14px 16px;cursor:pointer;box-shadow:var(--shadow);transition:border-color .15s ease, transform .12s ease, background .15s ease;
+}
+.match-card:hover{border-color:var(--lime-deep);transform:translateY(-2px);background:var(--card-hover);}
+.mc-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.mc-type{
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;
+  padding:3px 8px;border-radius:20px;
+}
+.c-liga{background:var(--lime-glow);color:var(--lime);}
+.c-copa{background:var(--pink-glow);color:var(--pink);}
+.c-amistoso{background:rgba(243,245,241,0.08);color:var(--ink-soft);}
+.mc-cond{font-size:11px;color:var(--ink-faint);}
+.mc-top .icon-btn{margin-left:auto;}
+.mc-rival{font-family:'Oswald',sans-serif;font-size:19px;font-weight:600;margin-bottom:12px;color:var(--ink);}
+.mc-bottom{display:flex;align-items:baseline;justify-content:space-between;color:var(--ink-soft);font-size:12.5px;}
+.mc-goals{font-family:'Oswald',sans-serif;font-size:16px;color:var(--lime);font-weight:700;}
+.mc-goals small{font-family:'Inter',sans-serif;font-weight:400;font-size:11px;color:var(--ink-faint);}
+
+/* new match form */
+.new-match-card{padding:16px 18px;margin-bottom:18px;}
+.nm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+.nm-grid label, .mdh-meta label{
+  display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--ink-soft);font-weight:500;
+}
+.nm-grid input, .nm-grid select, .mdh-meta input, .mdh-meta select{
+  border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-family:'Inter',sans-serif;
+  font-size:13.5px;color:var(--ink);background:var(--bg-elevated);
+}
+.nm-grid input:focus, .nm-grid select:focus, .mdh-meta input:focus, .mdh-meta select:focus{outline:2px solid var(--lime-deep);outline-offset:-1px;}
+.nm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
+
+/* match detail */
+.back-link{
+  background:none;border:none;color:var(--ink-soft);font-size:13px;cursor:pointer;
+  padding:0;margin-bottom:14px;font-family:'Inter',sans-serif;
+}
+.back-link:hover{color:var(--lime);}
+.match-detail-head{align-items:flex-start;}
+.mdh-eyebrow{font-size:12px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;}
+.mdh-meta{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:8px 10px;min-width:280px;}
+
+.stat-table{width:100%;border-collapse:collapse;min-width:520px;}
+.stat-table th{
+  text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;
+  color:var(--ink-faint);font-weight:600;padding:10px 8px;border-bottom:1px solid var(--line);
+  background:var(--bg-elevated);white-space:nowrap;
+}
+.stat-table th.pname-h{text-align:left;padding-left:14px;}
+.stat-table td{border-bottom:1px solid var(--line-soft);padding:0;text-align:center;}
+.stat-table tr:hover td{background:rgba(243,245,241,0.02);}
+.stat-table tr:last-child td{border-bottom:none;}
+.stat-table td.pname{
+  text-align:left;padding:0 10px;font-size:13.5px;font-weight:500;white-space:nowrap;color:var(--ink);
+}
+.stat-table .dorsal{color:var(--ink-faint);font-size:11px;font-weight:400;}
+.stat-table .empty-cell{color:var(--ink-soft);padding:24px;font-size:13px;}
+.stat-input{
+  width:52px;border:none;background:transparent;text-align:center;padding:11px 4px;
+  font-family:'Space Mono',monospace;font-size:13.5px;color:var(--ink);
+}
+.stat-input:focus{outline:none;background:var(--lime-glow);border-radius:5px;color:var(--ink);}
+
+.ts-title{margin:0 0 12px;font-size:13px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.04em;}
+.ts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 16px;}
+.ts-field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--ink-soft);}
+.ts-field input{
+  border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-family:'Space Mono',monospace;
+  font-size:13.5px;color:var(--ink);background:var(--bg-elevated);
+}
+.ts-field input:focus{outline:2px solid var(--lime-deep);outline-offset:-1px;}
+
+.metric-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;
+}
+.metric-card{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px;
+}
+.metric-card.accent{background:var(--pink-glow);border-color:rgba(255,77,141,0.35);}
+.metric-label{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;}
+.metric-value{font-size:22px;font-weight:600;color:var(--ink);}
+.metric-card.accent .metric-value{color:var(--pink);}
+
+.general-table th.sortable{cursor:pointer;user-select:none;}
+.general-table th.sortable:hover{color:var(--lime);}
+.hl-gold{color:var(--pink);font-weight:700;}
+.pos-badge{
+  font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;
+  background:var(--lime-glow);color:var(--lime);white-space:nowrap;
+}
+.pos-badge.pos-gk{background:var(--pink-glow);color:var(--pink);}
+
+.ind-controls{display:flex;gap:8px;align-items:center;}
+.player-select{
+  border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-family:'Inter',sans-serif;
+  font-size:13.5px;color:var(--ink);background:var(--bg-elevated);
+}
+.player-select option{background:var(--card);color:var(--ink);}
+.player-header{
+  display:flex;align-items:center;gap:14px;padding:16px 18px;margin-bottom:18px;
+}
+.ph-avatar{
+  width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--pitch-mid),var(--lime));color:#062420;
+  display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;
+  font-size:17px;font-weight:700;flex-shrink:0;
+}
+.ph-name{font-family:'Oswald',sans-serif;font-size:19px;font-weight:600;color:var(--ink);}
+.ph-meta{font-size:13px;color:var(--ink-soft);margin-top:2px;}
+
+/* ===== Match live-entry: roster + panel ===== */
+.md-layout{
+  display:grid;grid-template-columns:230px 1fr;gap:14px;align-items:start;
+}
+.md-roster{padding:14px;max-height:640px;overflow-y:auto;}
+.md-roster-title{
+  font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-faint);
+  font-weight:600;margin-bottom:10px;
+}
+.md-roster-list{display:flex;flex-direction:column;gap:3px;}
+.md-roster-row{
+  display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  background:none;border:1px solid transparent;border-radius:8px;padding:8px 9px;
+  color:var(--ink-soft);font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;
+  transition:background .12s ease;
+}
+.md-roster-row:hover{background:var(--card-hover);}
+.md-roster-row.active{background:var(--lime-glow);border-color:rgba(198,255,61,0.3);color:var(--ink);}
+.mrr-dot{width:7px;height:7px;border-radius:50%;background:var(--line);flex-shrink:0;}
+.mrr-dot.on{background:var(--lime);box-shadow:0 0 6px rgba(198,255,61,0.6);}
+.mrr-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mrr-goals{font-size:11px;color:var(--pink);flex-shrink:0;}
+.mrr-card{width:9px;height:12px;border-radius:2px;flex-shrink:0;}
+.mrr-card.yellow{background:#E8C158;}
+.mrr-card.red{background:var(--red);}
+
+.md-panel{padding:16px 18px;min-height:400px;}
+.md-panel-head{display:flex;align-items:center;gap:11px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line);}
+.md-panel-name{font-family:'Oswald',sans-serif;font-size:16.5px;font-weight:600;color:var(--ink);}
+.md-panel-pos{font-size:12px;color:var(--ink-soft);margin-top:1px;}
+
+.md-minutes{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line-soft);}
+.md-min-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px;}
+.min-preset{
+  background:var(--bg-elevated);border:1px solid var(--line);color:var(--ink-soft);
+  padding:7px 12px;border-radius:7px;font-family:'Space Mono',monospace;font-size:12.5px;
+  cursor:pointer;transition:all .12s ease;
+}
+.min-preset:hover{border-color:var(--lime-deep);}
+.min-preset.active{background:var(--lime);border-color:var(--lime);color:#062420;font-weight:700;}
+.md-min-input{width:64px;margin-left:4px;}
+
+.md-group{margin-bottom:18px;}
+.md-group:last-child{margin-bottom:0;}
+.md-group-title{
+  font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--lime);
+  font-weight:600;margin-bottom:10px;
+}
+.md-group-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+
+.stepper-label{font-size:11.5px;color:var(--ink-soft);display:block;margin-bottom:6px;}
+.stepper-row{display:flex;align-items:center;gap:0;}
+.stepper-btn{
+  width:26px;height:30px;flex-shrink:0;background:var(--bg-elevated);border:1px solid var(--line);
+  color:var(--ink);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .12s ease;
+}
+.stepper-btn:first-child{border-radius:7px 0 0 7px;}
+.stepper-btn:last-child{border-radius:0 7px 7px 0;}
+.stepper-btn:hover{background:var(--card-hover);color:var(--lime);}
+.stepper-input{
+  width:100%;min-width:0;height:30px;border:1px solid var(--line);border-left:none;border-right:none;
+  background:var(--bg-elevated);text-align:center;font-family:'Space Mono',monospace;font-size:13px;
+  color:var(--ink);
+}
+.stepper-input:focus{outline:none;background:var(--lime-glow);}
+.md-min-input{border-radius:7px;border:1px solid var(--line);}
+
+@media(max-width:820px){
+  .md-layout{grid-template-columns:1fr;}
+  .md-roster{max-height:220px;}
+}
+
+@media(max-width:640px){
+  .ind-controls{width:100%;}
+  .player-select{flex:1;}
+  .container{padding:16px 14px 48px;}
+  .app-header{padding:16px 14px 0;}
+  .brand-text h1{font-size:18px;}
+}
+
+/* ===== Auth screen ===== */
+.auth-screen{
+  position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;
+  padding:20px;
+  background:
+    radial-gradient(1100px 500px at 15% -10%, rgba(198,255,61,0.08), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(255,77,141,0.08), transparent 55%),
+    var(--bg);
+}
+.auth-screen.show{display:flex;}
+.auth-card{
+  width:100%;max-width:360px;background:var(--card);border:1px solid var(--line);
+  border-radius:16px;padding:32px 28px;box-shadow:0 20px 60px rgba(0,0,0,0.5);text-align:center;
+}
+.auth-crest{
+  width:52px;height:52px;border-radius:14px;margin:0 auto 14px;
+  background:linear-gradient(135deg,var(--lime) 0%, var(--pitch-mid) 130%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:18px;color:#062420;
+  box-shadow:0 0 0 1px rgba(198,255,61,0.25), 0 6px 18px rgba(198,255,61,0.18);
+}
+.auth-eyebrow{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--lime);font-weight:600;margin-bottom:4px;}
+.auth-title{font-family:'Oswald',sans-serif;font-size:21px;font-weight:600;margin:0 0 22px;color:var(--ink);}
+.auth-tabs{display:flex;background:var(--bg-elevated);border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:20px;}
+.auth-tab{
+  flex:1;background:none;border:none;color:var(--ink-soft);padding:8px 10px;border-radius:8px;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s ease;
+}
+.auth-tab.active{background:var(--lime);color:#062420;}
+.auth-form{display:flex;flex-direction:column;gap:12px;text-align:left;}
+.auth-form label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ink-soft);font-weight:500;}
+.auth-form input{
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:'Inter',sans-serif;
+  font-size:14px;color:var(--ink);background:var(--bg-elevated);
+}
+.auth-form input:focus{outline:2px solid var(--lime-deep);outline-offset:-1px;}
+.auth-submit{width:100%;justify-content:center;padding:11px;font-size:14px;margin-top:4px;}
+.auth-error{color:var(--red);font-size:12.5px;min-height:0;}
+.auth-error:empty{display:none;}
+.auth-hint{font-size:12px;color:var(--ink-faint);margin:18px 0 0;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-crest">CP</div>
+    <div class="auth-eyebrow">3ª división · Fútbol femenino</div>
+    <h1 class="auth-title">Cuaderno de partido</h1>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-mode="login">Iniciar sesión</button>
+      <button class="auth-tab" data-mode="signup">Crear cuenta</button>
+    </div>
+    <form id="authForm" class="auth-form">
+      <label>Usuario
+        <input type="text" id="authUser" autocomplete="username" placeholder="p.ej. entrenador" required>
+      </label>
+      <label>Contraseña
+        <input type="password" id="authPass" autocomplete="current-password" placeholder="••••••••" required minlength="6">
+      </label>
+      <div id="authError" class="auth-error"></div>
+      <button type="submit" class="btn primary auth-submit" id="authSubmit">Entrar</button>
+    </form>
+    <p class="auth-hint" id="authHint">¿Primera vez? Pulsa "Crear cuenta" para dar de alta al cuerpo técnico.</p>
+  </div>
+</div>
+
+<div id="appRoot" style="display:none">
+<div class="app-header">
+  <div class="pitch-lines">
+    <svg viewBox="0 0 1180 90" preserveAspectRatio="none">
+      <line x1="0" y1="88" x2="1180" y2="88" stroke="var(--chalk)" stroke-width="1"/>
+      <circle cx="590" cy="88" r="34" fill="none" stroke="var(--chalk)" stroke-width="1"/>
+    </svg>
+  </div>
+  <div class="header-top">
+    <div class="brand">
+      <div class="crest">CP</div>
+      <div class="brand-text">
+        <p class="eyebrow">3ª división · Fútbol femenino</p>
+        <h1 id="teamTitle">Cuaderno de partido</h1>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span id="syncBadge" class="sync-badge">●&nbsp;Comprobando…</span>
+      <button class="hbtn" id="btnLogout" style="display:none">Cerrar sesión</button>
+      <button class="hbtn" id="btnImport"><i data-icon="upload"></i>Importar</button>
+      <input type="file" id="importInput" accept=".xlsx">
+      <button class="hbtn primary" id="btnExport"><i data-icon="download"></i>Exportar Excel</button>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-view="partidos">Partidos</button>
+    <button class="tab" data-view="general">General</button>
+    <button class="tab" data-view="individual">Individual</button>
+    <button class="tab" data-view="plantilla">Plantilla <span class="tag" id="playerCountTag">0</span></button>
+  </nav>
+</div>
+
+<div class="container">
+  <div class="view active" id="view-partidos"></div>
+  <div class="view" id="view-general"></div>
+  <div class="view" id="view-individual"></div>
+  <div class="view" id="view-plantilla"></div>
+</div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   SUPABASE — CONFIGURACIÓN
+   ============================================================
+   1. Ve a https://supabase.com y crea un proyecto gratis.
+   2. En el proyecto, ve a Configuración (⚙️) -> API y copia:
+      - "Project URL"          -> pégalo en supabaseConfig.url
+      - "anon public" API key  -> pégalo en supabaseConfig.anonKey
+      (son claves públicas, no pasa nada por dejarlas visibles aquí).
+
+   3. Ve a "SQL Editor" y ejecuta esto para crear la tabla de datos:
+
+      create table equipo_estado (
+        id text primary key default 'principal',
+        data jsonb not null,
+        updated_at timestamptz default now()
+      );
+      alter table equipo_estado enable row level security;
+      create policy "usuarios autenticados leen y escriben"
+        on equipo_estado for all
+        using (auth.role() = 'authenticated')
+        with check (auth.role() = 'authenticated');
+
+   4. Ve a Authentication -> Providers -> Email, y en "Confirm email"
+      desactívalo (Disable). Como el login usa un usuario corto en vez de
+      un email real, no hay bandeja de correo donde confirmar la cuenta.
+
+   5. (Opcional pero recomendado) En Authentication -> Providers -> Email,
+      desactiva "Allow new users to sign up" una vez hayáis creado ya las
+      cuentas del cuerpo técnico, para que nadie más pueda registrarse.
+
+   Mientras dejes los valores de ejemplo tal cual, la app funciona en modo
+   LOCAL (guardado del artefacto, sin login) para que puedas probarla ya.
+   En cuanto pegues tu configuración real, aparece la pantalla de acceso
+   y los datos se guardan en Supabase.
+   ============================================================ */
+const supabaseConfig = {
+  url: "https://ibkqjuigikjgprydhxdi.supabase.co",
+  anonKey: "sb_publishable_hiKADrLr3ZzbbipptQeEJA_wRJuwh1R"
+};
+
+// Los usuarios se guardan internamente como "usuario@cuadernodepartido.local"
+// para poder usar el sistema de email+contraseña de Supabase con un
+// nombre de usuario corto en vez de un correo real.
+const AUTH_EMAIL_SUFFIX = '@cuadernodepartido.local';
+
+const SUPABASE_CONFIGURED = supabaseConfig.url && !supabaseConfig.url.startsWith('TU_');
+let sbClient = null;
+let sbReady = false;
+let sbSession = null;
+
+function setSyncBadge(mode, text){
+  const el = document.getElementById('syncBadge');
+  if(!el) return;
+  el.className = 'sync-badge ' + mode;
+  el.textContent = (mode === 'ok' ? '● ' : mode === 'error' ? '● ' : '○ ') + text;
+}
+
+function usuarioToEmail(usuario){
+  return usuario.trim().toLowerCase().replace(/\s+/g,'') + AUTH_EMAIL_SUFFIX;
+}
+
+async function initSupabase(){
+  if(!SUPABASE_CONFIGURED){
+    setSyncBadge('local', 'Modo local (sin Supabase)');
+    return false;
+  }
+  try{
+    sbClient = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+    const { data } = await sbClient.auth.getSession();
+    sbSession = data.session;
+    sbReady = true;
+    return true;
+  } catch(e){
+    console.error('Supabase init error', e);
+    setSyncBadge('error', 'Error de conexión, usando modo local');
+    return false;
+  }
+}
+
+
+/* ============================================================
+   ESTADO Y PERSISTENCIA
+   ============================================================ */
+const STORAGE_KEY = 'cuaderno-partido-data';
+const SB_TABLE = 'equipo_estado';
+const SB_ROW_ID = 'principal';
+const SEED_PLAYERS = [
+  "Cheyenne Salvador","Ana Ligia Rocha","Elena Solans","Jimena Porta","Paula Monreal",
+  "Nora Fleta","Laura Garcia","Ainoa Agudo","Lucia Gomez","Alexia Aros Jara",
+  "Carla Valenzuela","Maria Calle","Silvia Royo","Irene Garcia","Monica Martin",
+  "Ana Andres Cuartero","Silvia Paris","Karol Rodriguez","Adriana Bernal"
+];
+
+const STAT_GROUPS = ['General','Ataque','Portería','Disciplina'];
+
+const STAT_FIELDS = [
+  // General
+  {key:'minutos', label:'Min', full:'Minutos jugados', group:'General'},
+  // Ataque
+  {key:'goles', label:'Gol', full:'Goles', group:'Ataque'},
+  {key:'asistencias', label:'Ast', full:'Asistencias', group:'Ataque'},
+  {key:'finalizacion', label:'Tiros', full:'Tiros totales', group:'Ataque'},
+  {key:'finalizacionPuerta', label:'Tiros a puerta', full:'Tiros a puerta', group:'Ataque'},
+  // Portería (solo relevante si la jugadora es Portera)
+  {key:'paradas', label:'Paradas', full:'Paradas', group:'Portería'},
+  // Disciplina
+  {key:'amarillas', label:'TA', full:'Tarjetas amarillas', group:'Disciplina'},
+  {key:'rojas', label:'TR', full:'Tarjetas rojas', group:'Disciplina'},
+];
+
+const POSICIONES = ['Portera','Defensa','Medio','Delantera'];
+
+const TEAM_FIELDS = [
+  {key:'golesEncajados', label:'Goles encajados'},
+  {key:'fueraJuego', label:'Fuera de juego'},
+  {key:'faltasCometidas', label:'Faltas'},
+  {key:'cornerAtaqueBien', label:'Córner ataque · bien'},
+  {key:'cornerAtaqueMal', label:'Córner ataque · mal'},
+  {key:'cornerDefensaBien', label:'Córner defensa · bien'},
+  {key:'cornerDefensaMal', label:'Córner defensa · mal'},
+];
+
+function emptyPlayerStats(){
+  const o = {};
+  STAT_FIELDS.forEach(f => o[f.key] = 0);
+  return o;
+}
+function emptyTeamStats(){
+  const o = {};
+  TEAM_FIELDS.forEach(f => o[f.key] = 0);
+  return o;
+}
+function uid(prefix){
+  return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+
+let state = { teamName:'Cuaderno de partido', players: [], matches: [] };
+let stateReady = false;
+
+function seedState(){
+  state.players = SEED_PLAYERS.map(name => ({ id: uid('p'), nombre:name, dorsal:'', posicion:'' }));
+  state.matches = [];
+}
+
+async function loadState(){
+  const usingSupabase = SUPABASE_CONFIGURED && sbReady && sbSession;
+
+  if(usingSupabase){
+    try{
+      const { data, error } = await sbClient.from(SB_TABLE).select('data').eq('id', SB_ROW_ID).maybeSingle();
+      if(error) throw error;
+      if(data && data.data && Array.isArray(data.data.players)){
+        state = data.data;
+      } else {
+        seedState();
+        await sbClient.from(SB_TABLE).upsert({ id: SB_ROW_ID, data: state });
+      }
+      setSyncBadge('ok', 'Conectado a Supabase');
+      stateReady = true;
+      return;
+    } catch(e){
+      console.error('Supabase load error', e);
+      setSyncBadge('error', 'Error leyendo Supabase, modo local');
+    }
+  }
+
+  // Fallback local (artefacto sin Supabase configurado, sin sesión, o con error de red)
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      if(parsed && Array.isArray(parsed.players)){
+        state = parsed;
+      } else {
+        seedState();
+      }
+    } else {
+      seedState();
+    }
+  } catch(e){
+    seedState();
+  }
+  stateReady = true;
+}
+
+let saveTimeout = null;
+function saveState(showToast){
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(async () => {
+    if(SUPABASE_CONFIGURED && sbReady && sbSession){
+      try{
+        setSyncBadge('ok', 'Guardando…');
+        const { error } = await sbClient.from(SB_TABLE).upsert({ id: SB_ROW_ID, data: state, updated_at: new Date().toISOString() });
+        if(error) throw error;
+        setSyncBadge('ok', 'Conectado a Supabase');
+        if(showToast) toast('Guardado en la nube');
+        return;
+      } catch(e){
+        console.error('Supabase save error', e);
+        setSyncBadge('error', 'No se pudo guardar en Supabase');
+        toast('No se pudo guardar en Supabase');
+        return;
+      }
+    }
+    try{
+      await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+      if(showToast) toast('Guardado');
+    } catch(e){
+      toast('No se pudo guardar');
+    }
+  }, 200);
+}
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+/* ============================================================
+   CÁLCULOS AGREGADOS
+   ============================================================ */
+function playerPlayedMatch(match, playerId){
+  const st = match.playerStats && match.playerStats[playerId];
+  return st && Number(st.minutos) > 0;
+}
+
+function aggregatePlayer(playerId){
+  const agg = emptyPlayerStats();
+  let partidosJugados = 0;
+  state.matches.forEach(m => {
+    const st = m.playerStats && m.playerStats[playerId];
+    if(!st) return;
+    STAT_FIELDS.forEach(f => agg[f.key] += Number(st[f.key]) || 0);
+    if(Number(st.minutos) > 0) partidosJugados++;
+  });
+  const remEfectivos = agg.finalizacion > 0 ? agg.finalizacionPuerta / agg.finalizacion : null;
+  const participacionGol = agg.goles + agg.asistencias;
+  const golesPorPartido = partidosJugados > 0 ? agg.goles / partidosJugados : null;
+
+  let golesEncajados = 0, porteriasACero = 0;
+  state.matches.forEach(m => {
+    const st = m.playerStats && m.playerStats[playerId];
+    if(!st || !(Number(st.minutos) > 0)) return;
+    const enc = Number((m.teamStats||{}).golesEncajados) || 0;
+    golesEncajados += enc;
+    if(enc === 0) porteriasACero++;
+  });
+  const paradasPct = (agg.paradas + golesEncajados) > 0 ? agg.paradas / (agg.paradas + golesEncajados) : null;
+
+  return { ...agg, partidosJugados, remEfectivos, participacionGol, golesPorPartido, golesEncajados, porteriasACero, paradasPct };
+}
+
+function aggregateTeam(){
+  const agg = emptyTeamStats();
+  state.matches.forEach(m => {
+    TEAM_FIELDS.forEach(f => agg[f.key] += Number((m.teamStats||{})[f.key]) || 0);
+  });
+  return agg;
+}
+
+function fmtPct(v){
+  if(v === null || isNaN(v)) return '—';
+  return Math.round(v*100) + '%';
+}
+function fmtNum(v, decimals){
+  if(v === null || v === undefined || isNaN(v)) return '—';
+  if(decimals === undefined) return Math.round(v).toLocaleString('es-ES');
+  return Number(v).toFixed(decimals);
+}
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso + 'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'});
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ============================================================
+   NAVEGACIÓN
+   ============================================================ */
+let currentView = 'partidos';
+let openMatchId = null;
+let selectedMatchPlayerId = null;
+
+function switchView(view){
+  currentView = view;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
+  renderCurrentView();
+}
+
+function renderCurrentView(){
+  if(currentView === 'partidos') renderPartidos();
+  else if(currentView === 'general') renderGeneral();
+  else if(currentView === 'individual') renderIndividual();
+  else if(currentView === 'plantilla') renderPlantilla();
+  document.getElementById('playerCountTag').textContent = state.players.length;
+}
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('.tab');
+  if(btn) switchView(btn.dataset.view);
+});
+
+/* ============================================================
+   VISTA: PLANTILLA
+   ============================================================ */
+function renderPlantilla(){
+  const el = document.getElementById('view-plantilla');
+  const rows = state.players.map(p => `
+    <tr data-id="${p.id}">
+      <td><input type="text" class="pl-input" data-field="nombre" value="${escapeHtml(p.nombre)}" placeholder="Nombre y apellidos"></td>
+      <td style="width:80px"><input type="text" class="pl-input mono" data-field="dorsal" value="${escapeHtml(p.dorsal||'')}" placeholder="—" maxlength="3"></td>
+      <td style="width:180px">
+        <select class="pl-input pl-select" data-field="posicion">
+          <option value="" ${!p.posicion?'selected':''}>Sin asignar</option>
+          ${POSICIONES.map(pos => `<option value="${pos}" ${p.posicion===pos?'selected':''}>${pos}</option>`).join('')}
+        </select>
+      </td>
+      <td style="width:44px;text-align:center">
+        <button class="icon-btn danger-hover" data-action="del-player" title="Eliminar jugadora">✕</button>
+      </td>
+    </tr>`).join('');
+
+  el.innerHTML = `
+    <div class="section-head">
+      <div>
+        <h2>Plantilla</h2>
+        <div class="sub">${state.players.length} jugadoras registradas</div>
+      </div>
+      <button class="btn primary" id="btnAddPlayer">+ Añadir jugadora</button>
+    </div>
+    ${state.players.length === 0 ? `
+      <div class="empty">
+        <h3>Sin jugadoras todavía</h3>
+        <p>Añade tu plantilla para empezar a registrar partidos.</p>
+        <button class="btn primary" id="btnAddPlayerEmpty">+ Añadir jugadora</button>
+      </div>` : `
+      <div class="card" style="overflow:hidden">
+        <table class="roster-table">
+          <thead>
+            <tr><th>Nombre</th><th>Dorsal</th><th>Posición</th><th></th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`}
+  `;
+
+  const addPlayer = () => {
+    state.players.push({ id: uid('p'), nombre:'', dorsal:'', posicion:'' });
+    saveState();
+    renderPlantilla();
+    const inputs = el.querySelectorAll('.pl-input[data-field="nombre"]');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  };
+  const btnAdd = document.getElementById('btnAddPlayer');
+  const btnAddEmpty = document.getElementById('btnAddPlayerEmpty');
+  if(btnAdd) btnAdd.addEventListener('click', addPlayer);
+  if(btnAddEmpty) btnAddEmpty.addEventListener('click', addPlayer);
+
+  el.querySelectorAll('.pl-input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const tr = inp.closest('tr');
+      const id = tr.dataset.id;
+      const player = state.players.find(p => p.id === id);
+      if(player){ player[inp.dataset.field] = inp.value; saveState(); }
+    });
+  });
+
+  el.querySelectorAll('[data-action="del-player"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tr = btn.closest('tr');
+      const id = tr.dataset.id;
+      const player = state.players.find(p => p.id === id);
+      if(!player) return;
+      if(!confirm(`¿Eliminar a ${player.nombre || 'esta jugadora'} de la plantilla? Sus estadísticas en partidos ya jugados se mantendrán guardadas.`)) return;
+      state.players = state.players.filter(p => p.id !== id);
+      saveState();
+      renderPlantilla();
+    });
+  });
+}
+
+/* ============================================================
+   VISTA: PARTIDOS
+   ============================================================ */
+const MATCH_TYPES = ['Liga','Copa','Amistoso'];
+
+function newMatchStats(){
+  const playerStats = {};
+  state.players.forEach(p => playerStats[p.id] = emptyPlayerStats());
+  return { playerStats, teamStats: emptyTeamStats() };
+}
+
+function renderPartidos(){
+  const el = document.getElementById('view-partidos');
+
+  if(openMatchId){
+    const match = state.matches.find(m => m.id === openMatchId);
+    if(match) return renderMatchDetail(el, match);
+    openMatchId = null;
+  }
+
+  const sorted = [...state.matches].sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
+
+  el.innerHTML = `
+    <div class="section-head">
+      <div>
+        <h2>Partidos</h2>
+        <div class="sub">${state.matches.length} partido${state.matches.length===1?'':'s'} registrado${state.matches.length===1?'':'s'}</div>
+      </div>
+      <button class="btn primary" id="btnNewMatch">+ Nuevo partido</button>
+    </div>
+    <div id="newMatchForm"></div>
+    ${sorted.length === 0 ? `
+      <div class="empty">
+        <h3>Todavía no hay partidos</h3>
+        <p>Crea el primer partido para empezar a anotar minutos, goles y estadísticas en vivo.</p>
+        <button class="btn primary" id="btnNewMatchEmpty">+ Nuevo partido</button>
+      </div>` : `
+      <div class="match-grid" id="matchGrid"></div>`}
+  `;
+
+  const openForm = () => showNewMatchForm();
+  const btnNew = document.getElementById('btnNewMatch');
+  const btnNewEmpty = document.getElementById('btnNewMatchEmpty');
+  if(btnNew) btnNew.addEventListener('click', openForm);
+  if(btnNewEmpty) btnNewEmpty.addEventListener('click', openForm);
+
+  if(sorted.length){
+    const grid = document.getElementById('matchGrid');
+    grid.innerHTML = sorted.map(matchCardHtml).join('');
+    grid.querySelectorAll('.match-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if(e.target.closest('[data-action="del-match"]')) return;
+        openMatchId = card.dataset.id;
+        selectedMatchPlayerId = null;
+        renderPartidos();
+      });
+    });
+    grid.querySelectorAll('[data-action="del-match"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const card = btn.closest('.match-card');
+        const id = card.dataset.id;
+        const m = state.matches.find(x => x.id === id);
+        if(!confirm(`¿Eliminar el partido vs ${m ? m.rival : ''}? Se perderán sus estadísticas.`)) return;
+        state.matches = state.matches.filter(x => x.id !== id);
+        saveState();
+        renderPartidos();
+      });
+    });
+  }
+}
+
+function matchCardHtml(m){
+  const goles = state.players.reduce((sum,p) => sum + (Number((m.playerStats[p.id]||{}).goles)||0), 0);
+  const typeClass = m.tipo === 'Liga' ? 'c-liga' : (m.tipo === 'Copa' ? 'c-copa' : 'c-amistoso');
+  return `
+    <div class="match-card" data-id="${m.id}">
+      <div class="mc-top">
+        <span class="mc-type ${typeClass}">${escapeHtml(m.tipo||'Liga')}</span>
+        <span class="mc-cond">${m.condicion === 'Visitante' ? 'Fuera' : 'Casa'}</span>
+        <button class="icon-btn" data-action="del-match" title="Eliminar partido">✕</button>
+      </div>
+      <div class="mc-rival">${escapeHtml(m.rival || 'Rival sin nombre')}</div>
+      <div class="mc-bottom">
+        <span class="mc-date">${fmtDate(m.fecha)}</span>
+        <span class="mc-goals">${goles} <small>goles</small></span>
+      </div>
+    </div>`;
+}
+
+function showNewMatchForm(){
+  const holder = document.getElementById('newMatchForm');
+  if(!holder) return;
+  const today = new Date().toISOString().slice(0,10);
+  holder.innerHTML = `
+    <div class="card new-match-card">
+      <div class="nm-grid">
+        <label>Rival
+          <input type="text" id="nmRival" placeholder="Nombre del equipo rival" autofocus>
+        </label>
+        <label>Fecha
+          <input type="date" id="nmFecha" value="${today}">
+        </label>
+        <label>Competición
+          <select id="nmTipo">
+            ${MATCH_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
+          </select>
+        </label>
+        <label>Condición
+          <select id="nmCondicion">
+            <option value="Local">Local</option>
+            <option value="Visitante">Visitante</option>
+          </select>
+        </label>
+      </div>
+      <div class="nm-actions">
+        <button class="btn" id="nmCancel">Cancelar</button>
+        <button class="btn primary" id="nmSave">Crear partido</button>
+      </div>
+    </div>`;
+  document.getElementById('nmRival').focus();
+  document.getElementById('nmCancel').addEventListener('click', () => { holder.innerHTML = ''; });
+  document.getElementById('nmSave').addEventListener('click', () => {
+    const rival = document.getElementById('nmRival').value.trim();
+    if(!rival){ toast('Escribe el nombre del rival'); document.getElementById('nmRival').focus(); return; }
+    const match = {
+      id: uid('m'),
+      rival,
+      fecha: document.getElementById('nmFecha').value,
+      tipo: document.getElementById('nmTipo').value,
+      condicion: document.getElementById('nmCondicion').value,
+      ...newMatchStats()
+    };
+    state.matches.push(match);
+    saveState();
+    holder.innerHTML = '';
+    openMatchId = match.id;
+    selectedMatchPlayerId = null;
+    renderPartidos();
+  });
+}
+
+function renderMatchDetail(el, match){
+  state.players.forEach(p => {
+    if(!match.playerStats[p.id]) match.playerStats[p.id] = emptyPlayerStats();
+  });
+
+  if(!selectedMatchPlayerId || !state.players.find(p => p.id === selectedMatchPlayerId)){
+    selectedMatchPlayerId = state.players[0] ? state.players[0].id : null;
+  }
+
+  const teamCells = TEAM_FIELDS.map(f => `
+    <label class="ts-field">
+      <span>${f.label}</span>
+      <input type="number" min="0" class="stat-input" data-team="${f.key}" value="${match.teamStats[f.key]}">
+    </label>`).join('');
+
+  el.innerHTML = `
+    <button class="back-link" id="btnBack">← Volver a partidos</button>
+    <div class="section-head match-detail-head">
+      <div>
+        <div class="mdh-eyebrow">${escapeHtml(match.tipo)} · ${match.condicion === 'Visitante' ? 'Fuera de casa' : 'En casa'}</div>
+        <h2>vs ${escapeHtml(match.rival || 'Rival sin nombre')}</h2>
+      </div>
+      <div class="mdh-meta">
+        <label>Rival <input type="text" id="mdRival" value="${escapeHtml(match.rival)}"></label>
+        <label>Fecha <input type="date" id="mdFecha" value="${match.fecha||''}"></label>
+        <label>Competición
+          <select id="mdTipo">${MATCH_TYPES.map(t => `<option value="${t}" ${t===match.tipo?'selected':''}>${t}</option>`).join('')}</select>
+        </label>
+        <label>Condición
+          <select id="mdCondicion">
+            <option value="Local" ${match.condicion==='Local'?'selected':''}>Local</option>
+            <option value="Visitante" ${match.condicion==='Visitante'?'selected':''}>Visitante</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="md-layout">
+      <div class="card md-roster" id="mdRoster"></div>
+      <div class="card md-panel" id="mdPanel"></div>
+    </div>
+
+    <div class="card" style="padding:16px 18px;margin-top:16px">
+      <h3 class="ts-title">Estadísticas generales del equipo</h3>
+      <div class="ts-grid">${teamCells}</div>
+    </div>
+  `;
+
+  document.getElementById('btnBack').addEventListener('click', () => {
+    openMatchId = null;
+    renderPartidos();
+  });
+
+  const bindMeta = (id, field) => {
+    document.getElementById(id).addEventListener('input', (e) => {
+      match[field] = e.target.value;
+      saveState();
+    });
+    document.getElementById(id).addEventListener('change', () => renderMatchesHeaderOnly());
+  };
+  bindMeta('mdRival','rival');
+  bindMeta('mdFecha','fecha');
+  bindMeta('mdTipo','tipo');
+  bindMeta('mdCondicion','condicion');
+
+  el.querySelectorAll('.stat-input[data-team]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const field = inp.dataset.team;
+      const val = Math.max(0, Number(inp.value) || 0);
+      match.teamStats[field] = val;
+      saveState();
+    });
+  });
+
+  renderMatchRoster(match);
+  renderMatchPanel(match);
+}
+
+function renderMatchRoster(match){
+  const roster = document.getElementById('mdRoster');
+  if(!roster) return;
+  if(state.players.length === 0){
+    roster.innerHTML = `<div class="empty-cell" style="padding:20px">Añade jugadoras en Plantilla.</div>`;
+    return;
+  }
+  roster.innerHTML = `
+    <div class="md-roster-title">Plantilla</div>
+    <div class="md-roster-list">
+      ${state.players.map(p => {
+        const st = match.playerStats[p.id];
+        const played = Number(st.minutos) > 0;
+        return `
+        <button class="md-roster-row ${p.id===selectedMatchPlayerId?'active':''}" data-pid="${p.id}">
+          <span class="mrr-dot ${played?'on':''}"></span>
+          <span class="mrr-name">${escapeHtml(p.nombre || 'Sin nombre')}</span>
+          ${st.goles > 0 ? `<span class="mrr-goals">⚽${st.goles > 1 ? '×'+st.goles : ''}</span>` : ''}
+          ${(st.amarillas > 0 || st.rojas > 0) ? `<span class="mrr-card ${st.rojas>0?'red':'yellow'}"></span>` : ''}
+        </button>`;
+      }).join('')}
+    </div>`;
+  roster.querySelectorAll('.md-roster-row').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedMatchPlayerId = btn.dataset.pid;
+      roster.querySelectorAll('.md-roster-row').forEach(b => b.classList.toggle('active', b === btn));
+      renderMatchPanel(match);
+    });
+  });
+}
+
+function stepperHtml(field, value){
+  return `
+    <div class="stepper" data-field="${field.key}" title="${field.full}">
+      <span class="stepper-label">${field.label}</span>
+      <div class="stepper-row">
+        <button type="button" class="stepper-btn" data-dir="-1">−</button>
+        <input type="number" min="0" class="stepper-input" value="${value}">
+        <button type="button" class="stepper-btn" data-dir="1">+</button>
+      </div>
+    </div>`;
+}
+
+function renderMatchPanel(match){
+  const panel = document.getElementById('mdPanel');
+  if(!panel) return;
+  const player = state.players.find(p => p.id === selectedMatchPlayerId);
+  if(!player){
+    panel.innerHTML = `<div class="empty-cell" style="padding:20px">Selecciona una jugadora de la lista.</div>`;
+    return;
+  }
+  const st = match.playerStats[player.id];
+  const isGK = player.posicion === 'Portera';
+  const minPresets = [0, 30, 45, 60, 90];
+
+  const groupsToShow = STAT_GROUPS.filter(g => g !== 'General' && (g !== 'Portería' || isGK));
+
+  panel.innerHTML = `
+    <div class="md-panel-head">
+      <div class="ph-avatar" style="width:40px;height:40px;font-size:14px">${initials(player.nombre)}</div>
+      <div>
+        <div class="md-panel-name">${escapeHtml(player.nombre || 'Sin nombre')}</div>
+        <div class="md-panel-pos">${player.posicion ? escapeHtml(player.posicion) : 'Sin posición'}${player.dorsal ? ` · #${escapeHtml(player.dorsal)}` : ''}</div>
+      </div>
+    </div>
+
+    <div class="md-minutes">
+      <span class="stepper-label">Minutos jugados</span>
+      <div class="md-min-row">
+        ${minPresets.map(m => `<button type="button" class="min-preset ${Number(st.minutos)===m?'active':''}" data-min="${m}">${m===0?'No jugó':m}</button>`).join('')}
+        <input type="number" min="0" max="120" class="stepper-input md-min-input" data-field="minutos" value="${st.minutos}">
+      </div>
+    </div>
+
+    ${groupsToShow.map(group => `
+      <div class="md-group">
+        <div class="md-group-title">${group}</div>
+        <div class="md-group-grid">
+          ${STAT_FIELDS.filter(f => f.group === group).map(f => stepperHtml(f, st[f.key])).join('')}
+        </div>
+      </div>`).join('')}
+  `;
+
+  panel.querySelectorAll('.min-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = Number(btn.dataset.min);
+      st.minutos = val;
+      panel.querySelector('.md-min-input').value = val;
+      panel.querySelectorAll('.min-preset').forEach(b => b.classList.toggle('active', b === btn));
+      saveState();
+      renderMatchRoster(match);
+    });
+  });
+
+  panel.querySelector('.md-min-input').addEventListener('input', (e) => {
+    const val = Math.max(0, Number(e.target.value) || 0);
+    st.minutos = val;
+    panel.querySelectorAll('.min-preset').forEach(b => b.classList.toggle('active', Number(b.dataset.min) === val));
+    saveState();
+    renderMatchRoster(match);
+  });
+
+  panel.querySelectorAll('.stepper').forEach(box => {
+    const field = box.dataset.field;
+    const input = box.querySelector('.stepper-input');
+    const commit = () => {
+      const val = Math.max(0, Number(input.value) || 0);
+      input.value = val;
+      st[field] = val;
+      saveState();
+      if(field === 'goles' || field === 'amarillas' || field === 'rojas') renderMatchRoster(match);
+    };
+    box.querySelectorAll('.stepper-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dir = Number(btn.dataset.dir);
+        input.value = Math.max(0, (Number(input.value) || 0) + dir);
+        commit();
+      });
+    });
+    input.addEventListener('input', commit);
+  });
+}
+
+/* ============================================================
+   VISTA: GENERAL
+   ============================================================ */
+let generalSort = { key:'goles', dir:-1 };
+
+function renderGeneral(){
+  const el = document.getElementById('view-general');
+  const teamAgg = aggregateTeam();
+
+  if(state.matches.length === 0){
+    el.innerHTML = `
+      <div class="section-head"><div><h2>General</h2><div class="sub">Estadísticas acumuladas de toda la temporada</div></div></div>
+      <div class="empty"><h3>Todavía no hay datos</h3><p>Cuando registres partidos, aquí verás el acumulado de toda la plantilla.</p></div>`;
+    return;
+  }
+
+  const rows = state.players.map(p => ({ player:p, agg: aggregatePlayer(p.id) }));
+  const sortKey = generalSort.key;
+  rows.sort((a,b) => {
+    const va = sortKey === 'nombre' ? a.player.nombre.toLowerCase() : (sortKey === 'posicion' ? (a.player.posicion||'').toLowerCase() : (a.agg[sortKey] ?? -1));
+    const vb = sortKey === 'nombre' ? b.player.nombre.toLowerCase() : (sortKey === 'posicion' ? (b.player.posicion||'').toLowerCase() : (b.agg[sortKey] ?? -1));
+    if(va < vb) return -1 * generalSort.dir;
+    if(va > vb) return 1 * generalSort.dir;
+    return 0;
+  });
+
+  const cols = [
+    {key:'nombre', label:'Jugadora'},
+    {key:'posicion', label:'Pos'},
+    {key:'partidosJugados', label:'PJ'},
+    {key:'minutos', label:'Min'},
+    {key:'goles', label:'Gol'},
+    {key:'asistencias', label:'Ast'},
+    {key:'paradas', label:'Par'},
+    {key:'finalizacion', label:'Tiros'},
+    {key:'finalizacionPuerta', label:'T. puerta'},
+    {key:'amarillas', label:'TA'},
+    {key:'rojas', label:'TR'},
+  ];
+
+  const rowsHtml = rows.map(r => `
+    <tr>
+      <td class="pname">${escapeHtml(r.player.nombre || 'Sin nombre')}</td>
+      <td>${r.player.posicion ? `<span class="pos-badge ${r.player.posicion==='Portera'?'pos-gk':''}">${escapeHtml(r.player.posicion)}</span>` : '—'}</td>
+      <td>${r.agg.partidosJugados}</td>
+      <td>${fmtNum(r.agg.minutos)}</td>
+      <td class="hl-gold">${fmtNum(r.agg.goles)}</td>
+      <td>${fmtNum(r.agg.asistencias)}</td>
+      <td>${fmtNum(r.agg.paradas)}</td>
+      <td>${fmtNum(r.agg.finalizacion)}</td>
+      <td>${fmtNum(r.agg.finalizacionPuerta)}</td>
+      <td>${fmtNum(r.agg.amarillas)}</td>
+      <td>${fmtNum(r.agg.rojas)}</td>
+    </tr>`).join('');
+
+  el.innerHTML = `
+    <div class="section-head">
+      <div><h2>General</h2><div class="sub">Acumulado de ${state.matches.length} partido${state.matches.length===1?'':'s'}</div></div>
+    </div>
+
+    <div class="metric-grid">
+      ${TEAM_FIELDS.map(f => `
+        <div class="metric-card">
+          <div class="metric-label">${f.label}</div>
+          <div class="metric-value">${fmtNum(teamAgg[f.key])}</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="card" style="overflow-x:auto">
+      <table class="stat-table general-table">
+        <thead>
+          <tr>
+            ${cols.map(c => `<th class="${c.key==='nombre'?'pname-h':''} sortable" data-sort="${c.key}">${c.label}${generalSort.key===c.key ? (generalSort.dir===1?' ▲':' ▼') : ''}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>
+  `;
+
+  el.querySelectorAll('.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if(generalSort.key === key) generalSort.dir *= -1;
+      else generalSort = { key, dir: key==='nombre' ? 1 : -1 };
+      renderGeneral();
+    });
+  });
+}
+
+/* ============================================================
+   VISTA: INDIVIDUAL
+   ============================================================ */
+let selectedPlayerId = null;
+
+function renderIndividual(){
+  const el = document.getElementById('view-individual');
+
+  if(state.players.length === 0){
+    el.innerHTML = `
+      <div class="section-head"><div><h2>Individual</h2></div></div>
+      <div class="empty"><h3>Sin jugadoras</h3><p>Añade jugadoras en la pestaña Plantilla.</p></div>`;
+    return;
+  }
+  if(!selectedPlayerId || !state.players.find(p => p.id === selectedPlayerId)){
+    selectedPlayerId = state.players[0].id;
+  }
+  const player = state.players.find(p => p.id === selectedPlayerId);
+  const agg = aggregatePlayer(player.id);
+  const isGK = player.posicion === 'Portera';
+
+  const perMatchRows = [...state.matches]
+    .sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''))
+    .map(m => {
+      const st = m.playerStats[player.id] || emptyPlayerStats();
+      if(isGK){
+        const enc = Number((m.teamStats||{}).golesEncajados) || 0;
+        return `
+          <tr>
+            <td class="pname">${escapeHtml(m.rival || 'Rival sin nombre')}</td>
+            <td>${fmtDate(m.fecha)}</td>
+            <td>${fmtNum(st.minutos)}</td>
+            <td>${fmtNum(st.paradas)}</td>
+            <td>${st.minutos>0 ? fmtNum(enc) : '—'}</td>
+            <td>${st.minutos>0 && enc===0 ? 'Sí' : (st.minutos>0 ? 'No' : '—')}</td>
+            <td>${fmtNum(st.amarillas)}</td>
+            <td>${fmtNum(st.rojas)}</td>
+          </tr>`;
+      }
+      return `
+        <tr>
+          <td class="pname">${escapeHtml(m.rival || 'Rival sin nombre')}</td>
+          <td>${fmtDate(m.fecha)}</td>
+          <td>${fmtNum(st.minutos)}</td>
+          <td class="hl-gold">${fmtNum(st.goles)}</td>
+          <td>${fmtNum(st.asistencias)}</td>
+          <td>${fmtNum(st.paradas)}</td>
+          <td>${fmtNum(st.finalizacion)}</td>
+          <td>${fmtNum(st.finalizacionPuerta)}</td>
+          <td>${fmtNum(st.amarillas)}</td>
+          <td>${fmtNum(st.rojas)}</td>
+        </tr>`;
+    }).join('');
+
+  const metricsHtml = isGK ? `
+      <div class="metric-card"><div class="metric-label">Partidos jugados</div><div class="metric-value">${agg.partidosJugados}</div></div>
+      <div class="metric-card"><div class="metric-label">Minutos</div><div class="metric-value">${fmtNum(agg.minutos)}</div></div>
+      <div class="metric-card accent"><div class="metric-label">Paradas</div><div class="metric-value">${fmtNum(agg.paradas)}</div></div>
+      <div class="metric-card"><div class="metric-label">Goles encajados</div><div class="metric-value">${fmtNum(agg.golesEncajados)}</div></div>
+      <div class="metric-card"><div class="metric-label">Porterías a cero</div><div class="metric-value">${agg.porteriasACero}</div></div>
+      <div class="metric-card"><div class="metric-label">% paradas</div><div class="metric-value">${fmtPct(agg.paradasPct)}</div></div>
+      <div class="metric-card"><div class="metric-label">Tarjetas amarillas</div><div class="metric-value">${fmtNum(agg.amarillas)}</div></div>
+      <div class="metric-card"><div class="metric-label">Tarjetas rojas</div><div class="metric-value">${fmtNum(agg.rojas)}</div></div>
+  ` : `
+      <div class="metric-card"><div class="metric-label">Partidos jugados</div><div class="metric-value">${agg.partidosJugados}</div></div>
+      <div class="metric-card"><div class="metric-label">Minutos</div><div class="metric-value">${fmtNum(agg.minutos)}</div></div>
+      <div class="metric-card accent"><div class="metric-label">Goles</div><div class="metric-value">${fmtNum(agg.goles)}</div></div>
+      <div class="metric-card"><div class="metric-label">Asistencias</div><div class="metric-value">${fmtNum(agg.asistencias)}</div></div>
+      <div class="metric-card"><div class="metric-label">Participación en gol</div><div class="metric-value">${fmtNum(agg.participacionGol)}</div></div>
+      <div class="metric-card"><div class="metric-label">% tiros a puerta</div><div class="metric-value">${fmtPct(agg.remEfectivos)}</div></div>
+      <div class="metric-card"><div class="metric-label">Goles / partido</div><div class="metric-value">${fmtNum(agg.golesPorPartido,2)}</div></div>
+      <div class="metric-card"><div class="metric-label">Tarjetas (TA / TR)</div><div class="metric-value">${fmtNum(agg.amarillas)} / ${fmtNum(agg.rojas)}</div></div>
+  `;
+
+  const tableHead = isGK
+    ? `<th class="pname-h">Rival</th><th>Fecha</th><th>Min</th><th>Par</th><th>Enc.</th><th>Portería a cero</th><th>TA</th><th>TR</th>`
+    : `<th class="pname-h">Rival</th><th>Fecha</th><th>Min</th><th>Gol</th><th>Ast</th><th>Par</th><th>Fin</th><th>FinP</th><th>TA</th><th>TR</th>`;
+  const colCount = isGK ? 8 : 10;
+
+  el.innerHTML = `
+    <div class="section-head">
+      <div><h2>Individual</h2><div class="sub">Rendimiento acumulado por jugadora</div></div>
+      <div class="ind-controls">
+        <select id="playerSelect" class="player-select">
+          ${state.players.map(p => `<option value="${p.id}" ${p.id===player.id?'selected':''}>${escapeHtml(p.nombre || 'Sin nombre')}</option>`).join('')}
+        </select>
+        <button class="btn" id="btnPdf"><i data-icon="download"></i>PDF resumen</button>
+      </div>
+    </div>
+
+    <div class="player-header card">
+      <div class="ph-avatar">${initials(player.nombre)}</div>
+      <div>
+        <div class="ph-name">${escapeHtml(player.nombre || 'Sin nombre')}</div>
+        <div class="ph-meta">${player.posicion ? escapeHtml(player.posicion) : 'Sin posición asignada'}${player.dorsal ? ` · Dorsal #${escapeHtml(player.dorsal)}` : ''}</div>
+      </div>
+    </div>
+
+    <div class="metric-grid">${metricsHtml}</div>
+
+    <div class="card" style="overflow-x:auto">
+      <table class="stat-table">
+        <thead><tr>${tableHead}</tr></thead>
+        <tbody>${perMatchRows || `<tr><td colspan="${colCount}" class="empty-cell">Esta jugadora todavía no tiene partidos registrados.</td></tr>`}</tbody>
+      </table>
+    </div>
+  `;
+
+  document.getElementById('playerSelect').addEventListener('change', (e) => {
+    selectedPlayerId = e.target.value;
+    renderIndividual();
+  });
+  document.getElementById('btnPdf').addEventListener('click', () => exportPlayerPdf(player, agg));
+}
+
+function initials(name){
+  if(!name) return '?';
+  return name.trim().split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+
+function renderMatchesHeaderOnly(){
+  const match = state.matches.find(m => m.id === openMatchId);
+  if(!match) return;
+  const h2 = document.querySelector('.match-detail-head h2');
+  const eyebrow = document.querySelector('.mdh-eyebrow');
+  if(h2) h2.textContent = 'vs ' + (match.rival || 'Rival sin nombre');
+  if(eyebrow) eyebrow.textContent = `${match.tipo} · ${match.condicion === 'Visitante' ? 'Fuera de casa' : 'En casa'}`;
+}
+
+/* ============================================================
+   EXPORTAR A EXCEL
+   ============================================================ */
+function safeSheetName(name, used){
+  let base = String(name || 'Partido').replace(/[\\\/\?\*\[\]:]/g, ' ').trim().slice(0,28) || 'Partido';
+  let candidate = base;
+  let i = 2;
+  while(used.has(candidate.toLowerCase())){
+    candidate = (base.slice(0,25) + ' ' + i).slice(0,31);
+    i++;
+  }
+  used.add(candidate.toLowerCase());
+  return candidate;
+}
+
+function exportExcel(){
+  if(typeof XLSX === 'undefined'){ toast('No se pudo cargar el motor de Excel'); return; }
+  const wb = XLSX.utils.book_new();
+  const usedNames = new Set();
+
+  const globalHeader = ['Jugadora','Dorsal','Posición','PJ', ...STAT_FIELDS.map(f=>f.full),
+    '% tiros a puerta','Participación en gol','Goles / partido',
+    'Goles encajados (portera)','Porterías a cero (portera)','% paradas (portera)'];
+  const globalRows = state.players.map(p => {
+    const a = aggregatePlayer(p.id);
+    const pct = v => v===null ? '' : Math.round(v*1000)/1000;
+    return [p.nombre, p.dorsal||'', p.posicion||'', a.partidosJugados,
+      ...STAT_FIELDS.map(f => a[f.key]),
+      pct(a.remEfectivos), a.participacionGol, pct(a.golesPorPartido),
+      p.posicion==='Portera' ? a.golesEncajados : '',
+      p.posicion==='Portera' ? a.porteriasACero : '',
+      p.posicion==='Portera' ? pct(a.paradasPct) : ''];
+  });
+  const teamAgg = aggregateTeam();
+  const globalSheetData = [globalHeader, ...globalRows, [], ['Estadísticas generales del equipo (acumulado)']];
+  TEAM_FIELDS.forEach(f => globalSheetData.push([f.label, teamAgg[f.key]]));
+  const wsGlobal = XLSX.utils.aoa_to_sheet(globalSheetData);
+  XLSX.utils.book_append_sheet(wb, wsGlobal, safeSheetName('Global', usedNames));
+
+  [...state.matches].sort((a,b) => (a.fecha||'').localeCompare(b.fecha||'')).forEach(m => {
+    const header = ['Jugadora', ...STAT_FIELDS.map(f => f.full)];
+    const rows = state.players.map(p => {
+      const st = m.playerStats[p.id] || emptyPlayerStats();
+      return [p.nombre, ...STAT_FIELDS.map(f => st[f.key])];
+    });
+    const data = [
+      [`vs ${m.rival || ''}`], [`${m.tipo || ''} · ${m.condicion || ''} · ${fmtDate(m.fecha)}`], [],
+      header, ...rows, [], ['Estadísticas generales del equipo']
+    ];
+    TEAM_FIELDS.forEach(f => data.push([f.label, m.teamStats[f.key]]));
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const label = `${m.rival || 'Partido'} ${m.fecha||''}`.trim();
+    XLSX.utils.book_append_sheet(wb, ws, safeSheetName(label, usedNames));
+  });
+
+  state.players.forEach(p => {
+    const a = aggregatePlayer(p.id);
+    const isGK = p.posicion === 'Portera';
+    const pct = v => v===null ? '' : Math.round(v*1000)/1000;
+    const relevantFields = STAT_FIELDS.filter(f => f.group !== 'Portería' || isGK);
+    const matchRows = [...state.matches].sort((x,y)=>(x.fecha||'').localeCompare(y.fecha||'')).map(m => {
+      const st = m.playerStats[p.id] || emptyPlayerStats();
+      const enc = Number((m.teamStats||{}).golesEncajados) || 0;
+      const base = [m.rival, fmtDate(m.fecha), ...relevantFields.map(f => st[f.key])];
+      return isGK ? [...base, st.minutos>0?enc:'', st.minutos>0?(enc===0?'Sí':'No'):''] : base;
+    });
+    const summaryRows = [
+      ['Partidos jugados', a.partidosJugados],
+      ...relevantFields.map(f => [f.full, a[f.key]]),
+      ['% tiros a puerta', pct(a.remEfectivos)],
+      ['Participación en gol', a.participacionGol],
+      ['Goles / partido', pct(a.golesPorPartido)],
+      ...(isGK ? [
+        ['Goles encajados', a.golesEncajados],
+        ['Porterías a cero', a.porteriasACero],
+        ['% paradas', pct(a.paradasPct)],
+      ] : [])
+    ];
+    const matchHeader = isGK
+      ? ['Rival','Fecha', ...relevantFields.map(f=>f.label), 'Encajados','Portería a cero']
+      : ['Rival','Fecha', ...relevantFields.map(f=>f.label)];
+    const data = [
+      [p.nombre], [p.posicion || '', p.dorsal ? ('#'+p.dorsal) : ''], [],
+      ...summaryRows,
+      [],
+      matchHeader,
+      ...matchRows
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, safeSheetName(p.nombre, usedNames));
+  });
+
+  const dataSheet = XLSX.utils.aoa_to_sheet([['NO EDITAR — datos de la app'], [JSON.stringify(state)]]);
+  XLSX.utils.book_append_sheet(wb, dataSheet, safeSheetName('_datos', usedNames));
+
+  const filename = `estadisticas_${new Date().toISOString().slice(0,10)}.xlsx`;
+  XLSX.writeFile(wb, filename);
+  toast('Excel exportado');
+}
+
+/* ============================================================
+   IMPORTAR DESDE EXCEL
+   ============================================================ */
+function importExcel(file){
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try{
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const dataSheetName = wb.SheetNames.find(n => n.toLowerCase().startsWith('_datos'));
+      if(!dataSheetName){
+        toast('Este Excel no tiene datos exportados por esta app');
+        return;
+      }
+      const ws = wb.Sheets[dataSheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1});
+      const jsonStr = rows[1] && rows[1][0];
+      if(!jsonStr){ toast('No se encontraron datos válidos'); return; }
+      const parsed = JSON.parse(jsonStr);
+      if(!parsed || !Array.isArray(parsed.players)){ toast('Formato de datos no reconocido'); return; }
+      if(!confirm('Importar este archivo reemplazará todos los datos actuales de la app. ¿Continuar?')) return;
+      state = parsed;
+      saveState();
+      openMatchId = null;
+      selectedPlayerId = null;
+      renderCurrentView();
+      toast('Datos importados correctamente');
+    } catch(err){
+      toast('No se pudo leer el archivo');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ============================================================
+   EXPORTAR PDF INDIVIDUAL
+   ============================================================ */
+function exportPlayerPdf(player, agg){
+  if(typeof window.jspdf === 'undefined'){ toast('No se pudo cargar el motor de PDF'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'pt', format:'a4'});
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 48;
+  let y = 60;
+
+  const isGK = player.posicion === 'Portera';
+
+  doc.setFillColor(11,15,20);
+  doc.rect(0,0,pageW,90,'F');
+  doc.setTextColor(45,212,191);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.text('3ª DIVISIÓN · FÚTBOL FEMENINO', margin, 36);
+  doc.setTextColor(246,244,236);
+  doc.setFontSize(22);
+  doc.text(player.nombre || 'Sin nombre', margin, 64);
+  doc.setFontSize(11);
+  doc.setFont('helvetica','normal');
+  doc.text(`${player.posicion || 'Sin posición'}${player.dorsal ? '  ·  Dorsal #' + player.dorsal : ''}`, margin, 80);
+
+  y = 128;
+  doc.setTextColor(20,33,27);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(13);
+  doc.text('Resumen de temporada', margin, y);
+  y += 22;
+
+  const metrics = isGK ? [
+    ['Partidos jugados', agg.partidosJugados],
+    ['Minutos totales', fmtNum(agg.minutos)],
+    ['Paradas', fmtNum(agg.paradas)],
+    ['Goles encajados', fmtNum(agg.golesEncajados)],
+    ['Porterías a cero', agg.porteriasACero],
+    ['% paradas', fmtPct(agg.paradasPct)],
+    ['Tarjetas amarillas', fmtNum(agg.amarillas)],
+    ['Tarjetas rojas', fmtNum(agg.rojas)],
+  ] : [
+    ['Partidos jugados', agg.partidosJugados],
+    ['Minutos totales', fmtNum(agg.minutos)],
+    ['Goles', fmtNum(agg.goles)],
+    ['Asistencias', fmtNum(agg.asistencias)],
+    ['% tiros a puerta', fmtPct(agg.remEfectivos)],
+    ['Participación en gol', fmtNum(agg.participacionGol)],
+    ['Goles por partido', fmtNum(agg.golesPorPartido,2)],
+  ];
+  const colW = (pageW - margin*2) / 2;
+  metrics.forEach((m, i) => {
+    const col = i % 2, row = Math.floor(i/2);
+    const x = margin + col*colW;
+    const yy = y + row*46;
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(91,101,94);
+    doc.text(m[0].toUpperCase(), x, yy);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(17);
+    doc.setTextColor(20,33,27);
+    doc.text(String(m[1]), x, yy+20);
+  });
+  y += Math.ceil(metrics.length/2)*46 + 16;
+
+  doc.setDrawColor(222,218,203);
+  doc.line(margin, y, pageW-margin, y);
+  y += 24;
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(13);
+  doc.setTextColor(20,33,27);
+  doc.text('Partido a partido', margin, y);
+  y += 18;
+
+  const head = isGK ? ['Rival','Fecha','Min','Par','Encajados','A cero','TA','TR'] : ['Rival','Fecha','Min','Gol','Ast','Par','Fin','FinP'];
+  const colWidths = isGK ? [120,66,36,32,56,42,26,26] : [150,72,40,36,36,36,36,44];
+  doc.setFontSize(9);
+  doc.setFont('helvetica','bold');
+  doc.setFillColor(246,244,236);
+  doc.rect(margin, y, pageW-margin*2, 20, 'F');
+  let x = margin+6;
+  head.forEach((h,i) => { doc.text(h, x, y+14); x += colWidths[i]; });
+  y += 20;
+
+  doc.setFont('helvetica','normal');
+  const sortedMatches = [...state.matches].sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
+  sortedMatches.forEach(m => {
+    if(y > 770){ doc.addPage(); y = 50; }
+    const st = m.playerStats[player.id] || emptyPlayerStats();
+    const enc = Number((m.teamStats||{}).golesEncajados) || 0;
+    const cells = isGK
+      ? [m.rival || '—', fmtDate(m.fecha), st.minutos, st.paradas, st.minutos>0?enc:'—', st.minutos>0?(enc===0?'Sí':'No'):'—', st.amarillas, st.rojas]
+      : [m.rival || '—', fmtDate(m.fecha), st.minutos, st.goles, st.asistencias, st.paradas, st.finalizacion, st.finalizacionPuerta];
+    x = margin+6;
+    doc.setTextColor(20,33,27);
+    doc.setFontSize(9.5);
+    cells.forEach((c,i) => {
+      const text = doc.splitTextToSize(String(c), colWidths[i]-6)[0] || '';
+      doc.text(text, x, y+13);
+      x += colWidths[i];
+    });
+    doc.setDrawColor(234,230,216);
+    doc.line(margin, y+18, pageW-margin, y+18);
+    y += 18;
+  });
+
+  if(sortedMatches.length === 0){
+    doc.setTextColor(139,147,137);
+    doc.text('Sin partidos registrados todavía.', margin, y+14);
+  }
+
+  doc.save(`${(player.nombre||'jugadora').replace(/\s+/g,'_')}_resumen.pdf`);
+  toast('PDF generado');
+}
+
+/* ============================================================
+   AUTENTICACIÓN (usuario / contraseña)
+   ============================================================ */
+let authMode = 'login';
+
+function showAuthScreen(){
+  document.getElementById('authScreen').classList.add('show');
+  document.getElementById('appRoot').style.display = 'none';
+}
+function hideAuthScreen(){
+  document.getElementById('authScreen').classList.remove('show');
+  document.getElementById('appRoot').style.display = 'block';
+}
+
+function setAuthError(msg){
+  document.getElementById('authError').textContent = msg || '';
+}
+
+function setAuthMode(mode){
+  authMode = mode;
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+  document.getElementById('authSubmit').textContent = mode === 'login' ? 'Entrar' : 'Crear cuenta';
+  document.getElementById('authHint').textContent = mode === 'login'
+    ? '¿Primera vez? Pulsa "Crear cuenta" para dar de alta al cuerpo técnico.'
+    : 'La cuenta se crea al instante, sin correo de confirmación.';
+  setAuthError('');
+}
+
+document.querySelectorAll('.auth-tab').forEach(t => {
+  t.addEventListener('click', () => setAuthMode(t.dataset.mode));
+});
+
+document.getElementById('authForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  setAuthError('');
+  const usuario = document.getElementById('authUser').value.trim();
+  const pass = document.getElementById('authPass').value;
+  if(!usuario || pass.length < 6){
+    setAuthError('Escribe un usuario y una contraseña de al menos 6 caracteres.');
+    return;
+  }
+  const email = usuarioToEmail(usuario);
+  const submitBtn = document.getElementById('authSubmit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Un momento…';
+
+  try{
+    if(authMode === 'login'){
+      const { data, error } = await sbClient.auth.signInWithPassword({ email, password: pass });
+      if(error) throw error;
+      sbSession = data.session;
+    } else {
+      const { data, error } = await sbClient.auth.signUp({
+        email, password: pass,
+        options: { data: { usuario: usuario } }
+      });
+      if(error) throw error;
+      sbSession = data.session;
+      if(!sbSession){
+        setAuthError('Cuenta creada. Si tu proyecto de Supabase pide confirmar el email, revisa la configuración para desactivarlo.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = authMode === 'login' ? 'Entrar' : 'Crear cuenta';
+        return;
+      }
+    }
+    hideAuthScreen();
+    document.getElementById('btnLogout').style.display = '';
+    await loadState();
+    renderCurrentView();
+  } catch(err){
+    console.error('Auth error', err);
+    const msg = (err && err.message) || 'No se pudo completar la operación.';
+    setAuthError(
+      msg.includes('Invalid login') ? 'Usuario o contraseña incorrectos.' :
+      msg.includes('already registered') ? 'Ese usuario ya existe. Prueba a iniciar sesión.' :
+      msg
+    );
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = authMode === 'login' ? 'Entrar' : 'Crear cuenta';
+  }
+});
+
+async function logout(){
+  if(sbClient) await sbClient.auth.signOut();
+  sbSession = null;
+  document.getElementById('btnLogout').style.display = 'none';
+  setAuthMode('login');
+  document.getElementById('authForm').reset();
+  showAuthScreen();
+}
+
+/* ============================================================
+   INICIALIZACIÓN
+   ============================================================ */
+document.getElementById('btnExport').addEventListener('click', exportExcel);
+document.getElementById('btnImport').addEventListener('click', () => document.getElementById('importInput').click());
+document.getElementById('importInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(file) importExcel(file);
+  e.target.value = '';
+});
+document.getElementById('btnLogout').addEventListener('click', logout);
+
+(async function init(){
+  const usingSupabase = await initSupabase();
+
+  if(usingSupabase && !sbSession){
+    showAuthScreen();
+    return; // el resto arranca al hacer login, ver listener del authForm
+  }
+
+  if(usingSupabase && sbSession){
+    document.getElementById('btnLogout').style.display = '';
+  }
+
+  hideAuthScreen();
+  await loadState();
+  renderCurrentView();
+})();
+</script>
+</body>
+</html>
