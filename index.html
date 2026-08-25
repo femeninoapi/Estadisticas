@@ -404,6 +404,15 @@ h1,h2,h3,.num,.stat-value{font-family:'Oswald',sans-serif;}
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px rgba(45,212,191,0.8);animation:pulse-dot 1.4s infinite;}
 @keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:0.35;}}
 .clock-controls{display:flex;gap:8px;flex-wrap:wrap;}
+.scoreboard{
+  display:flex;align-items:center;gap:10px;background:var(--bg-elevated);
+  border:1px solid var(--line);border-radius:10px;padding:8px 16px;
+}
+.sb-team{font-size:11.5px;color:var(--ink-soft);font-weight:600;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sb-score{font-family:'Oswald',sans-serif;font-size:24px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;}
+.sb-us{color:var(--lime);}
+.sb-them{color:var(--pink);}
+.sb-sep{color:var(--ink-faint);font-weight:400;font-size:18px;}
 .clock-finished{font-size:13px;color:var(--ink-soft);font-weight:500;}
 
 .lineup-card{padding:16px 18px;margin-bottom:14px;}
@@ -436,11 +445,99 @@ h1,h2,h3,.num,.stat-value{font-family:'Oswald',sans-serif;}
   font-size:9.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--lime);
   background:var(--lime-glow);padding:2px 6px;border-radius:10px;margin-left:6px;font-weight:600;
 }
+.auto-tag.edit{color:var(--pink);background:var(--pink-glow);}
 .md-min-auto{display:flex;align-items:baseline;gap:12px;margin-top:8px;}
 .md-min-auto-value{font-family:'Oswald',sans-serif;font-size:26px;font-weight:600;color:var(--ink);}
 .md-min-auto-status{font-size:12px;color:var(--ink-faint);}
 .md-min-auto-status.on{color:var(--lime);}
 .md-min-periods{font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-faint);margin-top:6px;}
+
+/* ===== Curiosidades ===== */
+.subtab-switch{display:flex;background:var(--bg-elevated);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;}
+.subtab{
+  background:none;border:none;color:var(--ink-soft);padding:9px 14px;border-radius:8px;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .12s ease;
+  touch-action:manipulation;min-height:40px;
+}
+.subtab.active{background:var(--lime);color:#062420;}
+
+.hi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:16px;}
+.hi-card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;
+  display:flex;gap:12px;align-items:flex-start;box-shadow:var(--shadow);
+}
+.hi-icon{font-size:26px;line-height:1;flex-shrink:0;}
+.hi-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-faint);font-weight:600;margin-bottom:3px;}
+.hi-name{font-family:'Oswald',sans-serif;font-size:15.5px;font-weight:600;color:var(--ink);margin-bottom:2px;}
+.hi-value{font-size:13px;color:var(--lime);font-weight:600;}
+.hi-sub{color:var(--ink-faint);font-weight:400;font-size:11.5px;}
+
+.curio-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+.curio-card{padding:16px 18px;}
+.curio-wide{grid-column:1 / -1;}
+.curio-fact{font-size:12px;color:var(--ink-soft);margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft);}
+
+.record-row{display:flex;gap:10px;margin-bottom:14px;}
+.record-chip{
+  flex:1;background:var(--bg-elevated);border:1px solid var(--line);border-radius:10px;
+  padding:10px 8px;text-align:center;font-size:11px;color:var(--ink-soft);font-weight:600;
+}
+.record-chip span{display:block;font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:2px;}
+.record-chip.v span{color:var(--lime);}
+.record-chip.d span{color:var(--pink);}
+.racha-label{font-size:11px;color:var(--ink-faint);margin-bottom:8px;}
+.racha-row{display:flex;gap:6px;}
+.racha-dot{
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.racha-dot.v{background:var(--lime);color:#062420;}
+.racha-dot.e{background:var(--ink-faint);}
+.racha-dot.d{background:var(--pink);}
+
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.bar-row:last-child{margin-bottom:0;}
+.bar-row-label{font-size:12.5px;color:var(--ink-soft);width:88px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bar-track{flex:1;height:10px;background:var(--bg-elevated);border-radius:6px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:6px;transition:width .3s ease;}
+.bar-row-value{font-size:12px;color:var(--ink);width:24px;text-align:right;flex-shrink:0;}
+
+.donut-row{display:flex;gap:20px;}
+.donut-stat{flex:1;text-align:center;padding:12px 8px;background:var(--bg-elevated);border-radius:10px;}
+.donut-value{font-family:'Oswald',sans-serif;font-size:28px;font-weight:700;color:var(--lime);}
+.donut-value.pink{color:var(--pink);}
+.donut-label{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+.donut-sub{font-size:10.5px;color:var(--ink-faint);margin-top:4px;}
+
+.sparkline{display:flex;align-items:flex-end;gap:5px;height:110px;padding-top:10px;}
+.spark-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;min-width:18px;}
+.spark-bar{width:100%;max-width:26px;background:linear-gradient(180deg,var(--lime),var(--pitch-mid));border-radius:4px 4px 2px 2px;min-height:4px;}
+.spark-val{font-size:10px;color:var(--ink-faint);font-family:'Space Mono',monospace;white-space:nowrap;}
+.sparkline-dual .spark-bars{display:flex;gap:3px;align-items:flex-end;height:100%;width:100%;justify-content:center;}
+.sparkline-dual .spark-bar{max-width:14px;border-radius:3px 3px 1px 1px;}
+.sparkline-dual .spark-bar.for{background:var(--lime);}
+.sparkline-dual .spark-bar.against{background:var(--pink);}
+
+.card-note{font-size:10.5px;color:var(--ink-faint);font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px;}
+.chart-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-soft);margin-top:10px;}
+.leg-dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:2px;}
+.leg-dot.for{background:var(--lime);}
+.leg-dot.against{background:var(--pink);margin-left:10px;}
+
+.lv-row{display:flex;gap:14px;}
+.lv-col{flex:1;background:var(--bg-elevated);border-radius:10px;padding:12px 10px;text-align:center;}
+.lv-label{font-size:11px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;}
+.lv-score{font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;color:var(--lime);margin:6px 0 4px;}
+.lv-score.pink{color:var(--pink);}
+.lv-record{font-size:11px;color:var(--ink-faint);}
+
+.timing-chart{display:flex;gap:10px;height:120px;align-items:flex-end;padding-top:10px;}
+.timing-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;}
+.timing-bars{display:flex;gap:3px;align-items:flex-end;height:90px;width:100%;justify-content:center;}
+.timing-bar{width:13px;border-radius:3px 3px 1px 1px;min-height:3px;}
+.timing-bar.for{background:var(--lime);}
+.timing-bar.against{background:var(--pink);}
+.timing-label{font-size:10px;color:var(--ink-faint);font-family:'Space Mono',monospace;}
 
 @media(max-width:640px){
   .ind-controls{width:100%;}
@@ -663,6 +760,8 @@ const STAT_FIELDS = [
   {key:'asistencias', label:'Ast', full:'Asistencias', group:'Ataque'},
   {key:'finalizacion', label:'Tiros', full:'Tiros totales', group:'Ataque'},
   {key:'finalizacionPuerta', label:'Tiros a puerta', full:'Tiros a puerta', group:'Ataque'},
+  {key:'manoAManoAcertado', label:'Mano a mano OK', full:'Mano a mano acertado', group:'Ataque'},
+  {key:'manoAManoFallado', label:'Mano a mano fallado', full:'Mano a mano fallado', group:'Ataque'},
   // Portería (solo relevante si la jugadora es Portera)
   {key:'paradas', label:'Paradas', full:'Paradas', group:'Portería'},
   // Disciplina
@@ -1109,6 +1208,8 @@ function eventLabel(ev){
     case 'finalizacion': return `🥅 Tiro de ${nombre}`;
     case 'finalizacionPuerta': return `🎯 Tiro a puerta de ${nombre}`;
     case 'paradas': return `🧤 Parada de ${nombre}`;
+    case 'manoAManoAcertado': return `✅ Mano a mano acertado de ${nombre}`;
+    case 'manoAManoFallado': return `❌ Mano a mano fallado de ${nombre}`;
     case 'amarillas': return `🟨 Amarilla a ${nombre}`;
     case 'rojas': return `🟥 Roja a ${nombre}`;
     case 'cambio': return `🔄 Cambio: sale ${ev.outNombre}, entra ${ev.inNombre}`;
@@ -1116,6 +1217,10 @@ function eventLabel(ev){
     case 'descanso': return `⏸️ Descanso`;
     case 'inicio2': return `▶️ Comienza la 2ª parte`;
     case 'final': return `🏁 Fin del partido`;
+    case 'equipo': {
+      const f = TEAM_FIELDS.find(t => t.key === ev.campo);
+      return `📋 ${f ? f.label : ev.campo}`;
+    }
     default: return ev.tipo;
   }
 }
@@ -1337,10 +1442,25 @@ function renderMatchDetail(el, match){
     const field = box.dataset.team;
     const input = box.querySelector('.stepper-input');
     const commit = () => {
+      const oldVal = Number(match.teamStats[field]) || 0;
       const val = Math.max(0, Number(input.value) || 0);
       input.value = val;
       match.teamStats[field] = val;
+      const delta = val - oldVal;
+      if(delta > 0){
+        for(let i=0;i<delta;i++) addMatchEvent(match, 'equipo', { campo: field });
+      } else if(delta < 0){
+        let toRemove = -delta;
+        for(let i = match.eventos.length - 1; i >= 0 && toRemove > 0; i--){
+          if(match.eventos[i].tipo === 'equipo' && match.eventos[i].campo === field){
+            match.eventos.splice(i, 1);
+            toRemove--;
+          }
+        }
+      }
       saveState();
+      renderMatchTimeline(match);
+      updateScoreboard(match);
     };
     box.querySelectorAll('.stepper-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1378,11 +1498,25 @@ function updateClockDisplay(match){
   if(timeEl) timeEl.textContent = fmtClock(getMatchElapsedSeconds(match));
 }
 
+function getMatchScore(match){
+  const golesFor = state.players.reduce((sum,p) => sum + (Number((match.playerStats[p.id]||{}).goles)||0), 0);
+  const golesAgainst = Number(match.teamStats.golesEncajados) || 0;
+  return { golesFor, golesAgainst };
+}
+
+function updateScoreboard(match){
+  const el = document.getElementById('mdScoreboard');
+  if(!el) return;
+  const { golesFor, golesAgainst } = getMatchScore(match);
+  el.innerHTML = `<span class="sb-us">${golesFor}</span><span class="sb-sep">–</span><span class="sb-them">${golesAgainst}</span>`;
+}
+
 function renderMatchClock(match){
   const box = document.getElementById('mdClock');
   if(!box) return;
   const c = match.clock;
   const running = c.status === 'running1' || c.status === 'running2';
+  const { golesFor, golesAgainst } = getMatchScore(match);
 
   let controls = '';
   if(c.status === 'idle'){
@@ -1403,6 +1537,11 @@ function renderMatchClock(match){
       <div class="clock-time-block">
         <div class="clock-time ${running?'live':''}" id="mdClockTime">${fmtClock(getMatchElapsedSeconds(match))}</div>
         <div class="clock-phase">${running?'<span class="live-dot"></span>':''}${clockPhaseLabel(c.status)}</div>
+      </div>
+      <div class="scoreboard">
+        <span class="sb-team">Nosotras</span>
+        <span class="sb-score" id="mdScoreboard"><span class="sb-us">${golesFor}</span><span class="sb-sep">–</span><span class="sb-them">${golesAgainst}</span></span>
+        <span class="sb-team">${escapeHtml(match.rival || 'Rival')}</span>
       </div>
       <div class="clock-controls">${controls}</div>
     </div>
@@ -1607,7 +1746,8 @@ function renderMatchPanel(match){
 
   const groupsToShow = STAT_GROUPS.filter(g => g !== 'General' && (g !== 'Portería' || isGK));
 
-  const minutesBlock = lineupActive ? `
+  const finished = match.clock.status === 'finished';
+  const minutesBlock = (lineupActive && !finished) ? `
     <div class="md-minutes">
       <span class="stepper-label">Minutos jugados <span class="auto-tag">automático</span></span>
       <div class="md-min-auto">
@@ -1615,6 +1755,16 @@ function renderMatchPanel(match){
         <span class="md-min-auto-status ${onPitchNow?'on':''}">${onPitchNow ? '● En el campo' : (periods.length ? '○ Suplente / fuera' : '○ En el banquillo')}</span>
       </div>
       ${periods.length ? `<div class="md-min-periods">${periods.map(p => `${p.desde}'–${p.hasta===null||p.hasta===undefined?'…':p.hasta+"'"}`).join(', ')}</div>` : ''}
+    </div>
+  ` : lineupActive ? `
+    <div class="md-minutes">
+      <span class="stepper-label">Minutos jugados <span class="auto-tag edit">corrección manual</span></span>
+      <div class="stepper-row" style="max-width:160px;margin-top:8px">
+        <button type="button" class="stepper-btn" data-mindir="-1">−</button>
+        <input type="number" min="0" max="120" class="stepper-input md-min-input" data-field="minutos" value="${st.minutos}">
+        <button type="button" class="stepper-btn" data-mindir="1">+</button>
+      </div>
+      ${periods.length ? `<div class="md-min-periods">Automático: ${periods.map(p => `${p.desde}'–${p.hasta===null||p.hasta===undefined?'…':p.hasta+"'"}`).join(', ')}</div>` : ''}
     </div>
   ` : `
     <div class="md-minutes">
@@ -1665,6 +1815,23 @@ function renderMatchPanel(match){
       saveState();
       renderMatchRoster(match);
     });
+  } else if(finished){
+    const minInput = panel.querySelector('.md-min-input');
+    const commitMin = () => {
+      const val = Math.max(0, Number(minInput.value) || 0);
+      minInput.value = val;
+      st.minutos = val;
+      saveState();
+      renderMatchRoster(match);
+    };
+    panel.querySelectorAll('[data-mindir]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dir = Number(btn.dataset.mindir);
+        minInput.value = Math.max(0, (Number(minInput.value) || 0) + dir);
+        commitMin();
+      });
+    });
+    if(minInput) minInput.addEventListener('input', commitMin);
   }
 
   panel.querySelectorAll('.stepper').forEach(box => {
@@ -1689,6 +1856,7 @@ function renderMatchPanel(match){
       }
       saveState();
       if(field === 'goles' || field === 'amarillas' || field === 'rojas') renderMatchRoster(match);
+      if(field === 'goles') updateScoreboard(match);
       renderMatchTimeline(match);
     };
     box.querySelectorAll('.stepper-btn').forEach(btn => {
@@ -1706,6 +1874,7 @@ function renderMatchPanel(match){
    VISTA: GENERAL
    ============================================================ */
 let generalSort = { key:'goles', dir:-1 };
+let generalSubView = 'tabla';
 
 function renderGeneral(){
   const el = document.getElementById('view-general');
@@ -1717,6 +1886,27 @@ function renderGeneral(){
       <div class="empty"><h3>Todavía no hay datos</h3><p>Cuando registres partidos, aquí verás el acumulado de toda la plantilla.</p></div>`;
     return;
   }
+
+  el.innerHTML = `
+    <div class="section-head">
+      <div><h2>General</h2><div class="sub">Acumulado de ${state.matches.length} partido${state.matches.length===1?'':'s'}</div></div>
+      <div class="subtab-switch">
+        <button class="subtab ${generalSubView==='tabla'?'active':''}" data-sub="tabla">📋 Tabla</button>
+        <button class="subtab ${generalSubView==='curiosidades'?'active':''}" data-sub="curiosidades">✨ Curiosidades</button>
+      </div>
+    </div>
+    <div id="generalBody"></div>
+  `;
+  el.querySelectorAll('.subtab').forEach(btn => {
+    btn.addEventListener('click', () => { generalSubView = btn.dataset.sub; renderGeneral(); });
+  });
+
+  if(generalSubView === 'tabla') renderGeneralTabla(teamAgg);
+  else renderCuriosidades(teamAgg);
+}
+
+function renderGeneralTabla(teamAgg){
+  const el = document.getElementById('generalBody');
 
   const rows = state.players.map(p => ({ player:p, agg: aggregatePlayer(p.id) }));
   const sortKey = generalSort.key;
@@ -1758,10 +1948,6 @@ function renderGeneral(){
     </tr>`).join('');
 
   el.innerHTML = `
-    <div class="section-head">
-      <div><h2>General</h2><div class="sub">Acumulado de ${state.matches.length} partido${state.matches.length===1?'':'s'}</div></div>
-    </div>
-
     <div class="metric-grid">
       ${TEAM_FIELDS.map(f => `
         <div class="metric-card">
@@ -1790,6 +1976,246 @@ function renderGeneral(){
       renderGeneral();
     });
   });
+}
+
+/* ============================================================
+   CURIOSIDADES (resumen visual de temporada)
+   ============================================================ */
+function barRowHtml(label, value, max, colorVar, suffix){
+  const pct = max > 0 ? Math.max(2, Math.round((value/max)*100)) : 0;
+  return `
+    <div class="bar-row">
+      <span class="bar-row-label">${escapeHtml(label)}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:var(${colorVar})"></div></div>
+      <span class="bar-row-value mono">${value}${suffix||''}</span>
+    </div>`;
+}
+
+function highlightCard(icon, label, name, value, sub){
+  return `
+    <div class="hi-card">
+      <div class="hi-icon">${icon}</div>
+      <div class="hi-body">
+        <div class="hi-label">${label}</div>
+        <div class="hi-name">${name ? escapeHtml(name) : '—'}</div>
+        <div class="hi-value">${value}${sub ? ` <span class="hi-sub">${sub}</span>` : ''}</div>
+      </div>
+    </div>`;
+}
+
+function renderCuriosidades(teamAgg){
+  const el = document.getElementById('generalBody');
+  const playersWithAgg = state.players.map(p => ({ player:p, agg: aggregatePlayer(p.id) }));
+  const jugaron = playersWithAgg.filter(x => x.agg.partidosJugados > 0);
+
+  const topBy = (key, min) => {
+    const pool = min ? playersWithAgg.filter(x => x.agg[key] >= min) : jugaron;
+    if(pool.length === 0) return null;
+    return pool.reduce((a,b) => (b.agg[key] > a.agg[key] ? b : a));
+  };
+  const topGoleadora = topBy('goles');
+  const topAsistente = topBy('asistencias');
+  const tiradoras = playersWithAgg.filter(x => x.agg.finalizacion >= 3);
+  const mejorPunteria = tiradoras.length ? tiradoras.reduce((a,b) => (b.agg.remEfectivos > a.agg.remEfectivos ? b : a)) : null;
+  const porteras = playersWithAgg.filter(x => x.player.posicion === 'Portera' && x.agg.partidosJugados > 0);
+  const mejorPortera = porteras.length ? porteras.reduce((a,b) => (b.agg.porteriasACero > a.agg.porteriasACero ? b : a)) : null;
+
+  // Récord de la temporada (V-E-D) y racha
+  const matchResults = [...state.matches]
+    .sort((a,b) => (a.fecha||'').localeCompare(b.fecha||''))
+    .map(m => {
+      const { golesFor, golesAgainst } = getMatchScore(m);
+      const res = golesFor > golesAgainst ? 'V' : (golesFor === golesAgainst ? 'E' : 'D');
+      return { m, golesFor, golesAgainst, res };
+    });
+  const record = matchResults.reduce((acc,r) => { acc[r.res]++; return acc; }, {V:0,E:0,D:0});
+  const racha = matchResults.slice(-5);
+  const porteriasACeroEquipo = matchResults.filter(r => r.golesAgainst === 0).length;
+  const maxGolesJornada = Math.max(1, ...matchResults.map(r => Math.max(r.golesFor, r.golesAgainst)));
+
+  const totalCornerAtaque = teamAgg.cornerAtaqueBien + teamAgg.cornerAtaqueMal;
+  const totalCornerDefensa = teamAgg.cornerDefensaBien + teamAgg.cornerDefensaMal;
+  const pctCornerAtaque = totalCornerAtaque > 0 ? Math.round((teamAgg.cornerAtaqueBien/totalCornerAtaque)*100) : null;
+  const pctCornerDefensa = totalCornerDefensa > 0 ? Math.round((teamAgg.cornerDefensaBien/totalCornerDefensa)*100) : null;
+
+  // Producción ofensiva por 90' (mínimo 60' para evitar ruido de muestra pequeña)
+  const conMinutos = playersWithAgg.filter(x => x.agg.minutos >= 60);
+  const por90 = conMinutos.map(x => {
+    const factor = x.agg.minutos / 90;
+    return { player:x.player, golesPor90: x.agg.goles/factor, asistPor90: x.agg.asistencias/factor, gaPor90: (x.agg.goles+x.agg.asistencias)/factor };
+  }).sort((a,b) => b.gaPor90 - a.gaPor90).slice(0,5);
+  const maxGaPor90 = Math.max(1, ...por90.map(x => x.gaPor90));
+
+  // Eficiencia de finalización (goles por tiro, mínimo 3 tiros)
+  const finalizadoras = playersWithAgg.filter(x => x.agg.finalizacion >= 3)
+    .map(x => ({ player:x.player, conv: x.agg.goles / x.agg.finalizacion, tiros:x.agg.finalizacion, goles:x.agg.goles }))
+    .sort((a,b) => b.conv - a.conv).slice(0,5);
+  const maxConv = Math.max(0.01, ...finalizadoras.map(x => x.conv*100));
+
+  // Dependencia goleadora
+  const totalGolesEquipo = jugaron.reduce((s,x) => s + x.agg.goles, 0);
+  const dependencia = (topGoleadora && totalGolesEquipo > 0) ? Math.round((topGoleadora.agg.goles/totalGolesEquipo)*100) : null;
+
+  // Reparto de minutos / uso de plantilla
+  const porMinutos = [...jugaron].sort((a,b) => b.agg.minutos - a.agg.minutos);
+  const totalMinutosEquipo = porMinutos.reduce((s,x) => s + x.agg.minutos, 0);
+  const top5Minutos = porMinutos.slice(0,5).reduce((s,x) => s + x.agg.minutos, 0);
+  const concentracion = totalMinutosEquipo > 0 ? Math.round((top5Minutos/totalMinutosEquipo)*100) : null;
+  const maxMinutos = Math.max(1, ...porMinutos.map(x => x.agg.minutos));
+
+  // Local vs Visitante
+  const porCondicion = (cond) => {
+    const ms = matchResults.filter(r => r.m.condicion === cond);
+    const gf = ms.reduce((s,r) => s+r.golesFor, 0);
+    const gc = ms.reduce((s,r) => s+r.golesAgainst, 0);
+    const v = ms.filter(r=>r.res==='V').length, e = ms.filter(r=>r.res==='E').length, d = ms.filter(r=>r.res==='D').length;
+    return { n:ms.length, gf, gc, v, e, d };
+  };
+  const local = porCondicion('Local');
+  const visitante = porCondicion('Visitante');
+
+  // Cuándo marcamos y encajamos (ventanas de 15')
+  const bucketLabels = ['1-15\'','16-30\'','31-45\'','46-60\'','61-75\'','76\'+'];
+  const bucketFor = [0,0,0,0,0,0], bucketAgainst = [0,0,0,0,0,0];
+  const bucketIdx = (min) => min<=15?0 : min<=30?1 : min<=45?2 : min<=60?3 : min<=75?4 : 5;
+  const trackedMatches = state.matches.filter(m => m.clock && m.clock.firstHalfStartedAt);
+  trackedMatches.forEach(m => {
+    (m.eventos||[]).forEach(ev => {
+      if(ev.tipo === 'goles') bucketFor[bucketIdx(ev.minuto)]++;
+      else if(ev.tipo === 'equipo' && ev.campo === 'golesEncajados') bucketAgainst[bucketIdx(ev.minuto)]++;
+    });
+  });
+  const maxBucket = Math.max(1, ...bucketFor, ...bucketAgainst);
+  const hayTiming = trackedMatches.length > 0 && (bucketFor.some(v=>v>0) || bucketAgainst.some(v=>v>0));
+
+  // Disciplina
+  const totalTarjetas = jugaron.reduce((s,x) => s + x.agg.amarillas + x.agg.rojas, 0);
+  const tarjetasPorPartido = matchResults.length ? (totalTarjetas/matchResults.length) : null;
+  const ratioFaltas = teamAgg.faltasRecibidas > 0 ? teamAgg.faltasCometidas/teamAgg.faltasRecibidas : null;
+
+  el.innerHTML = `
+    <div class="hi-grid">
+      ${highlightCard('👑','Máxima goleadora', topGoleadora?topGoleadora.player.nombre:null, topGoleadora?fmtNum(topGoleadora.agg.goles):'—', topGoleadora?'goles':'')}
+      ${highlightCard('🎯','Máxima asistente', topAsistente?topAsistente.player.nombre:null, topAsistente?fmtNum(topAsistente.agg.asistencias):'—', topAsistente?'asistencias':'')}
+      ${highlightCard('🔥','Mejor puntería', mejorPunteria?mejorPunteria.player.nombre:null, mejorPunteria?fmtPct(mejorPunteria.agg.remEfectivos):'—', mejorPunteria?'tiros a puerta':'')}
+      ${highlightCard('🧤','Portería menos goleada', mejorPortera?mejorPortera.player.nombre:null, mejorPortera?mejorPortera.agg.porteriasACero:'—', mejorPortera?'porterías a cero':'')}
+    </div>
+
+    <div class="curio-grid">
+      <div class="card curio-card">
+        <h3 class="ts-title">Forma reciente</h3>
+        <div class="record-row">
+          <div class="record-chip v"><span>${record.V}</span>Victorias</div>
+          <div class="record-chip e"><span>${record.E}</span>Empates</div>
+          <div class="record-chip d"><span>${record.D}</span>Derrotas</div>
+        </div>
+        ${racha.length ? `
+          <div class="racha-label">Últimos ${racha.length} partidos</div>
+          <div class="racha-row">${racha.map(r => `<span class="racha-dot ${r.res.toLowerCase()}" title="${escapeHtml(r.m.rival||'')} ${r.golesFor}-${r.golesAgainst}">${r.res}</span>`).join('')}</div>
+        ` : ''}
+        <div class="curio-fact">${porteriasACeroEquipo} partido${porteriasACeroEquipo===1?'':'s'} sin encajar gol</div>
+      </div>
+
+      <div class="card curio-card curio-wide">
+        <h3 class="ts-title">Goles por jornada — a favor vs en contra</h3>
+        <div class="sparkline sparkline-dual">
+          ${matchResults.map(r => `
+            <div class="spark-col" title="${escapeHtml(r.m.rival||'')}: ${r.golesFor}-${r.golesAgainst}">
+              <div class="spark-bars">
+                <div class="spark-bar for" style="height:${Math.max(4,(r.golesFor/maxGolesJornada)*100)}%"></div>
+                <div class="spark-bar against" style="height:${Math.max(4,(r.golesAgainst/maxGolesJornada)*100)}%"></div>
+              </div>
+              <span class="spark-val">${r.golesFor}-${r.golesAgainst}</span>
+            </div>`).join('')}
+        </div>
+        <div class="chart-legend"><span class="leg-dot for"></span>A favor <span class="leg-dot against"></span>En contra</div>
+      </div>
+
+      <div class="card curio-card">
+        <h3 class="ts-title">Producción por 90' <span class="card-note">mín. 60' jugados</span></h3>
+        ${por90.length ? por90.map(x => barRowHtml(x.player.nombre, x.gaPor90.toFixed(2), maxGaPor90, '--lime')).join('') : `<div class="empty-cell" style="padding:8px 0">Sin muestra suficiente todavía.</div>`}
+        <div class="curio-fact">Goles + asistencias cada 90 minutos jugados — mide impacto real, no solo acumulado.</div>
+      </div>
+
+      <div class="card curio-card">
+        <h3 class="ts-title">Eficiencia de finalización <span class="card-note">mín. 3 tiros</span></h3>
+        ${finalizadoras.length ? finalizadoras.map(x => barRowHtml(x.player.nombre, Math.round(x.conv*100), maxConv, '--pink', '%')).join('') : `<div class="empty-cell" style="padding:8px 0">Sin muestra suficiente todavía.</div>`}
+        <div class="curio-fact">% de tiros que terminan en gol — quién define mejor, no solo quién más dispara.</div>
+      </div>
+
+      <div class="card curio-card">
+        <h3 class="ts-title">Dependencia goleadora</h3>
+        <div class="donut-row">
+          <div class="donut-stat">
+            <div class="donut-value">${dependencia===null?'—':dependencia+'%'}</div>
+            <div class="donut-label">de los goles del equipo</div>
+            <div class="donut-sub">${topGoleadora ? `los marca ${escapeHtml(topGoleadora.player.nombre)}` : 'sin datos'}</div>
+          </div>
+          <div class="donut-stat">
+            <div class="donut-value pink">${concentracion===null?'—':concentracion+'%'}</div>
+            <div class="donut-label">de los minutos</div>
+            <div class="donut-sub">se concentran en 5 jugadoras</div>
+          </div>
+        </div>
+        <div class="curio-fact">${dependencia!==null && dependencia>=40 ? '⚠️ Alta dependencia de una jugadora para marcar.' : 'Reparto de goles razonablemente equilibrado.'}</div>
+      </div>
+
+      <div class="card curio-card curio-wide">
+        <h3 class="ts-title">Reparto de minutos por plantilla</h3>
+        ${porMinutos.length ? porMinutos.map(x => barRowHtml(x.player.nombre, x.agg.minutos, maxMinutos, '--lime-deep', "'")).join('') : `<div class="empty-cell" style="padding:8px 0">Todavía no hay minutos registrados.</div>`}
+      </div>
+
+      <div class="card curio-card">
+        <h3 class="ts-title">Local vs Visitante</h3>
+        <div class="lv-row">
+          <div class="lv-col">
+            <div class="lv-label">Local</div>
+            <div class="lv-score">${local.gf}-${local.gc}</div>
+            <div class="lv-record">${local.v}V ${local.e}E ${local.d}D · ${local.n} PJ</div>
+          </div>
+          <div class="lv-col">
+            <div class="lv-label">Visitante</div>
+            <div class="lv-score pink">${visitante.gf}-${visitante.gc}</div>
+            <div class="lv-record">${visitante.v}V ${visitante.e}E ${visitante.d}D · ${visitante.n} PJ</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card curio-card">
+        <h3 class="ts-title">Córners: acierto</h3>
+        <div class="donut-row">
+          <div class="donut-stat"><div class="donut-value">${pctCornerAtaque===null?'—':pctCornerAtaque+'%'}</div><div class="donut-label">En ataque</div><div class="donut-sub">${teamAgg.cornerAtaqueBien} bien · ${teamAgg.cornerAtaqueMal} mal</div></div>
+          <div class="donut-stat"><div class="donut-value pink">${pctCornerDefensa===null?'—':pctCornerDefensa+'%'}</div><div class="donut-label">En defensa</div><div class="donut-sub">${teamAgg.cornerDefensaBien} bien · ${teamAgg.cornerDefensaMal} mal</div></div>
+        </div>
+      </div>
+
+      <div class="card curio-card">
+        <h3 class="ts-title">Disciplina</h3>
+        <div class="donut-row">
+          <div class="donut-stat"><div class="donut-value">${tarjetasPorPartido===null?'—':tarjetasPorPartido.toFixed(1)}</div><div class="donut-label">Tarjetas / partido</div></div>
+          <div class="donut-stat"><div class="donut-value pink">${ratioFaltas===null?'—':ratioFaltas.toFixed(2)}</div><div class="donut-label">Faltas cometidas / recibidas</div></div>
+        </div>
+        <div class="curio-fact">${ratioFaltas!==null ? (ratioFaltas>1.3 ? '⚠️ Cometemos bastantes más faltas de las que recibimos.' : ratioFaltas<0.7 ? 'Recibimos más faltas de las que cometemos — buen indicio de presión rival.' : 'Balance de faltas equilibrado.') : 'Sin datos suficientes de faltas.'}</div>
+      </div>
+
+      <div class="card curio-card curio-wide">
+        <h3 class="ts-title">¿Cuándo marcamos y encajamos? <span class="card-note">por tramos de 15'</span></h3>
+        ${hayTiming ? `
+          <div class="timing-chart">
+            ${bucketLabels.map((lab,i) => `
+              <div class="timing-col">
+                <div class="timing-bars">
+                  <div class="timing-bar for" style="height:${Math.max(3,(bucketFor[i]/maxBucket)*100)}%" title="${bucketFor[i]} a favor"></div>
+                  <div class="timing-bar against" style="height:${Math.max(3,(bucketAgainst[i]/maxBucket)*100)}%" title="${bucketAgainst[i]} en contra"></div>
+                </div>
+                <span class="timing-label">${lab}</span>
+              </div>`).join('')}
+          </div>
+          <div class="chart-legend"><span class="leg-dot for"></span>Goles a favor <span class="leg-dot against"></span>Goles en contra</div>
+        ` : `<div class="empty-cell" style="padding:8px 0">Usa el reloj en directo durante los partidos (Once inicial → Iniciar 1ª parte) para ver en qué minutos marca y encaja el equipo.</div>`}
+      </div>
+    </div>
+  `;
 }
 
 /* ============================================================
